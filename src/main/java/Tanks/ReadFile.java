@@ -26,6 +26,7 @@ public class ReadFile {
                     continue;
                 }
 
+                // Initial dirty array that is too short
                 char[] lineChars = line.toCharArray();
 
                 // Replace invalid characters with '.'
@@ -43,7 +44,10 @@ public class ReadFile {
                     }
                 }
 
+                // Add the dirty array into the terrain arrayList where every element represents a row 
+                // We don't know how many rows we will have thus need for arrayList
                 terrain.add(lineChars);
+
 
                 // Update maxCols if necessary
                 if (lineChars.length > maxCols) {
@@ -58,24 +62,41 @@ public class ReadFile {
             }
             */
 
-            // Create the 2D array terrainArray
+            // Create the 2D array terrainArray with trailing ".""
             terrainArray = new char[terrain.size()][maxCols];
-            for (int i = 0; i < terrain.size(); i++) {
-                char[] row = terrain.get(i);
-                for (int j = 0; j < row.length; j++) {
-                    terrainArray[i][j] = row[j];
+            System.out.println(terrain.size());
+            System.out.println(maxCols);
+
+            int index_all_rows = 0;
+
+            while (index_all_rows < terrainArray.length) {
+                int index_rowElements = 0;
+
+                // Copy elements from terrain.get(index_all_rows) to terrainArray[index_all_rows]
+                for (char c : terrain.get(index_all_rows)) {
+                    terrainArray[index_all_rows][index_rowElements] = c;
+                    index_rowElements++;
                 }
+
+                // Fill the remaining elements in the row with '.'
+                while (index_rowElements < terrainArray[index_all_rows].length) {
+                    terrainArray[index_all_rows][index_rowElements] = '.';
+                    index_rowElements++;
+                }
+
+                index_all_rows++;
             }
 
+
             // Print the 2D array terrainArray (if needed)
-            /* 
+        
             for (char[] row : terrainArray) {
                 for (char cell : row) {
                     System.out.print(cell + " ");
                 }
                 System.out.println();
             }
-            */
+        
 
             scanner.close();
         } catch (FileNotFoundException e) {
