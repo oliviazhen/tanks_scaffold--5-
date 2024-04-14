@@ -62,11 +62,9 @@ public class ReadFile {
             }
             */
 
-            // Create the 2D array terrainArray with trailing ".""
             terrainArray = new char[terrain.size()][maxCols];
-            System.out.println(terrain.size());
-            System.out.println(maxCols);
 
+            // Create the 2D array terrainArray with trailing "."
             int index_all_rows = 0;
 
             while (index_all_rows < terrainArray.length) {
@@ -88,16 +86,31 @@ public class ReadFile {
             }
 
 
+            // Traverse the terrainArray and create the snowy hills 
+            for (int col = 0; col < terrainArray[0].length; col++) {
+                // For each column, loop over each row
+                for (int row = 0; row < terrainArray.length; row++) {
+                    char element = terrainArray[row][col]; 
+
+                    if (element == 'X') {
+                        // If the current element is 'X', replace 'X' for all rows below it in the same column
+                        for (int curr_row = row + 1; curr_row < terrainArray.length; curr_row++) {
+                            terrainArray[curr_row][col] = 'X';
+                        }
+                    }
+                }
+            }
+
             // Print the 2D array terrainArray (if needed)
-        
+            /*  
             for (char[] row : terrainArray) {
                 for (char cell : row) {
-                    System.out.print(cell + " ");
+                    System.out.print(cell);
                 }
                 System.out.println();
             }
-        
-
+            */
+            
             scanner.close();
         } catch (FileNotFoundException e) {
             System.out.println("File Not Found");

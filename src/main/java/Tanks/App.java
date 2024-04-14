@@ -66,7 +66,7 @@ public class App extends PApplet {
 		//loadJSONObject(configPath);
 		//loadImage(this.getClass().getResource("src/main/resources/basic.png").getPath().toLowerCase(Locale.ROOT).replace("%20", " "));
         snow = loadImage("src/main/resources/Tanks/snow.png");
-        map = ReadFile.loadArray("level3.txt");
+        map = ReadFile.loadArray("level1.txt");
 
         this.tiles = ReadFile.arrayToTiles(map);
 
@@ -133,7 +133,7 @@ public class App extends PApplet {
 
     public static void main(String[] args) {
         PApplet.main("Tanks.App");
-        //ReadFile.loadArray("level3.txt");
+        //ReadFile.loadArray("level1.txt");
 
     }
 
