@@ -1,10 +1,49 @@
 package Tanks;
+
 import java.util.ArrayList;
 import java.util.Scanner;
 import java.io.File;
 import java.io.FileNotFoundException;
 
+// Parse JSON
+import com.google.gson.Gson;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.Map;
+
+
 public class ReadFile {
+
+    public static void readJsonFile(String fileName){
+
+        try{
+            Gson gson = new Gson();
+            GameData gameData = gson.fromJson(new FileReader(fileName), GameData.class);
+            
+             // Now you can access the parsed data
+             System.out.println("Levels:");
+             for (Level level : gameData.getLevels()) {
+                 System.out.println("Layout: " + level.getLayout());
+                 System.out.println("Background: " + level.getBackground());
+                 System.out.println("Foreground Colour: " + level.getForegroundColour());
+                 if (level.getTrees() != null) {
+                     System.out.println("Trees: " + level.getTrees());
+                 }
+                 System.out.println();
+             }
+
+            System.out.println("Player Colours:");
+            for (Map.Entry<String,String> playerColours: gameData.getPlayerColours().entrySet()){
+                System.out.println("Character: " + playerColours.getKey() + ", RBG: " + playerColours.getValue());
+            }
+            
+            
+            
+        }catch(IOException e){
+            e.printStackTrace();
+        }
+       
+    }
 
     public static char[][] loadArray(String filename){
 

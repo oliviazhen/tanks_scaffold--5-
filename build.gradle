@@ -32,6 +32,9 @@ dependencies {
 
     // Use JUnit Jupiter Engine for testing.
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.6.2'
+
+    //readJSON
+    implementation 'com.google.code.gson:gson:2.8.8'
 }
 
 application {
