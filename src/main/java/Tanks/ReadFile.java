@@ -16,8 +16,9 @@ public class ReadFile {
 
     public static char[][] loadArray(String filename){
 
+        char[][] fullSize = new char[32][32]; 
         ArrayList<char[]> terrain = new ArrayList<>();
-        char[][] terrainArray = new char[0][0];
+        char[][] terrainArray = new char[0][0]; 
         int maxCols = 0;
 
         try {
@@ -70,9 +71,15 @@ public class ReadFile {
             }
             */
 
+            /* Terrain Array is a 2D matrix. 
+             * Rows is represented by the terrain.size() but should be represented by the size of the window
+             * Columns is represented by the maxCols
+             */
+
+
             terrainArray = new char[terrain.size()][maxCols];
 
-            // Create the 2D array terrainArray with trailing "."
+            // Create the 2D array terrainArray with trailing columns "."
             int index_all_rows = 0;
 
             while (index_all_rows < terrainArray.length) {
@@ -94,7 +101,7 @@ public class ReadFile {
             }
 
 
-            // Traverse the terrainArray and create the snowy hills 
+            // Traverse the terrainArray and fill in the bottom
             for (int col = 0; col < terrainArray[0].length; col++) {
                 // For each column, loop over each row
                 for (int row = 0; row < terrainArray.length; row++) {
@@ -109,9 +116,23 @@ public class ReadFile {
                 }
             }
 
+            char[] allX = new char[maxCols];
+            for (int a = 0; a < allX.length; a ++){
+                allX[a] = 'X';
+            }
+
+            for (int i = 0; i < terrainArray.length; i++){
+                fullSize[i] = terrainArray[i];
+            }
+
+            // After we have appended every terrainArray, if there are spare rows left we fill with allX
+            for (int i = terrainArray.length; i < fullSize.length; i++){
+                fullSize[i] = allX;
+            }
+
             // Print the 2D array terrainArray (if needed)
-            /*  
-            for (char[] row : terrainArray) {
+            /* 
+            for (char[] row : fullSize) {
                 for (char cell : row) {
                     System.out.print(cell);
                 }
@@ -125,7 +146,7 @@ public class ReadFile {
             e.printStackTrace();
         }
 
-    return terrainArray; 
+    return fullSize; 
     }
 
     public static Tile[][] arrayToTiles(char[][] array, String colour, String treePath){
