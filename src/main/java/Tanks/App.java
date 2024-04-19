@@ -37,7 +37,8 @@ public class App extends PApplet {
     public static Random random = new Random();
 	
 	// Feel free to add any additional methods or attributes you want. Please put classes in different files.
-    PImage snow;
+    PImage imageType;
+    JSONObject jsonData;
 
     //create an array to store the terrain based on the levels
     char[][] map;
@@ -65,10 +66,44 @@ public class App extends PApplet {
 		//See PApplet javadoc:
 		//loadJSONObject(configPath);
 		//loadImage(this.getClass().getResource("src/main/resources/basic.png").getPath().toLowerCase(Locale.ROOT).replace("%20", " "));
-        snow = loadImage("src/main/resources/Tanks/snow.png");
-        map = ReadFile.loadArray("level1.txt");
 
-        this.tiles = ReadFile.arrayToTiles(map);
+        // Load the JSON object upon setup
+        jsonData = loadJSONObject("config.json");
+
+    }
+
+    public void loadLevel(int levelIndex){
+        JSONArray levels = jsonData.getJSONArray("levels");
+        JSONObject level = levels.getJSONObject(levelIndex);
+
+        //load the background
+        String backgroundName = level.getString("background");
+        String backgroundPath = "src/main/resources/Tanks/" + backgroundName;
+        
+        imageType = loadImage(backgroundPath);
+        image(imageType, 0, 0);
+
+        //load the tile map
+        String tileType = level.getString("layout");
+        map = ReadFile.loadArray(tileType);
+
+        //load the foreground colour
+        String foregroundColour = level.getString("foreground-colour");
+        this.tiles = ReadFile.arrayToTiles(map, foregroundColour, null);
+        
+        //load the trees if any
+        if (level.getString("trees") != null){
+            String treeType = level.getString("trees");
+            String treePath = "src/main/resources/Tanks/" + treeType;
+            this.tiles = ReadFile.arrayToTiles(map, foregroundColour, treePath);
+        }
+        
+        //fix this idk where it goes
+        for (int row = 0; row < tiles.length; row++) {
+            for (int col = 0; col < tiles[0].length; col++) {
+                tiles[row][col].draw(this, CELLSIZE); // Pass the size of each tile
+            }
+        }
 
     }
 
@@ -105,15 +140,9 @@ public class App extends PApplet {
      */
 	@Override
     public void draw() {
-        
-        image(snow, 0, 0);
 
-        for (int row = 0; row < tiles.length; row++) {
-            for (int col = 0; col < tiles[0].length; col++) {
-                tiles[row][col].draw(this, CELLSIZE); // Pass the size of each tile
-            }
-        }
-
+        loadLevel(2);
+    
         //----------------------------------
         //display HUD:
         //----------------------------------

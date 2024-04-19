@@ -14,37 +14,6 @@ import java.util.Map;
 
 public class ReadFile {
 
-    public static void readJsonFile(String fileName){
-
-        try{
-            Gson gson = new Gson();
-            GameData gameData = gson.fromJson(new FileReader(fileName), GameData.class);
-            
-             // Now you can access the parsed data
-             System.out.println("Levels:");
-             for (Level level : gameData.getLevels()) {
-                 System.out.println("Layout: " + level.getLayout());
-                 System.out.println("Background: " + level.getBackground());
-                 System.out.println("Foreground Colour: " + level.getForegroundColour());
-                 if (level.getTrees() != null) {
-                     System.out.println("Trees: " + level.getTrees());
-                 }
-                 System.out.println();
-             }
-
-            System.out.println("Player Colours:");
-            for (Map.Entry<String,String> playerColours: gameData.getPlayerColours().entrySet()){
-                System.out.println("Character: " + playerColours.getKey() + ", RBG: " + playerColours.getValue());
-            }
-            
-            
-            
-        }catch(IOException e){
-            e.printStackTrace();
-        }
-       
-    }
-
     public static char[][] loadArray(String filename){
 
         ArrayList<char[]> terrain = new ArrayList<>();
@@ -149,7 +118,7 @@ public class ReadFile {
                 System.out.println();
             }
             */
-            
+        
             scanner.close();
         } catch (FileNotFoundException e) {
             System.out.println("File Not Found");
@@ -158,9 +127,8 @@ public class ReadFile {
 
     return terrainArray; 
     }
-  
 
-    public static Tile[][] arrayToTiles(char[][] array){
+    public static Tile[][] arrayToTiles(char[][] array, String colour, String treePath){
 
         Tile[][] tiles = new Tile[array.length][array[0].length];
 
@@ -173,7 +141,8 @@ public class ReadFile {
                     type = "empty";
                 }
                 else if (array[row][col] == 'X'){
-                    type = "white";
+                    type = "floor";
+
                 }
                 else if (array[row][col] == 'T'){
                     type = "tree";
@@ -185,6 +154,10 @@ public class ReadFile {
                 
                 //create the tile
                 tiles[row][col] = new Tile(type, row, col);
+
+                if (tiles[row][col].getType() == "floor") tiles[row][col].setColour(colour);
+                if (tiles[row][col].getType() == "tree") tiles[row][col].setTree(treePath);
+
             }
         }
 
