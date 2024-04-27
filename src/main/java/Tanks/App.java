@@ -8,15 +8,11 @@ import processing.data.JSONObject;
 import processing.event.KeyEvent;
 import processing.event.MouseEvent;
 
-import java.awt.*;
-import java.awt.geom.AffineTransform;
-import java.awt.image.BufferedImage;
-
 import java.io.*;
 import java.util.*;
 
 
-public class App extends PApplet {
+public class App extends PApplet{
 
     public static final int CELLSIZE = 32; //8;
     public static final int CELLHEIGHT = 32;
@@ -25,6 +21,8 @@ public class App extends PApplet {
     public static final int TOPBAR = 0;
     public static int WIDTH = 864; //CELLSIZE*BOARD_WIDTH;
     public static int HEIGHT = 640; //BOARD_HEIGHT*CELLSIZE+TOPBAR;
+
+    //BOARD represents what board[][] in the checkers game would!
     public static final int BOARD_WIDTH = WIDTH/CELLSIZE;
     public static final int BOARD_HEIGHT = 20;
 
@@ -41,9 +39,8 @@ public class App extends PApplet {
     JSONObject jsonData;
 
     //create an array to store the terrain based on the levels
-    char[][] map;
     Tile[][] tiles;
-
+    double[] movingAvg;
 
     public App() {
         this.configPath = "config.json";
@@ -70,6 +67,38 @@ public class App extends PApplet {
         // Load the JSON object upon setup
         jsonData = loadJSONObject("config.json");
 
+        loadLevel(0);
+    }
+
+    public void drawTree(PImage tree, int r, double c){
+        float row = r * CELLSIZE; // Adjust for cell size
+        float col = HEIGHT - (float) c * CELLSIZE; // Adjust for cell size
+        image(tree, row, col, CELLSIZE, CELLSIZE);
+    }
+
+    public double[] drawSmoothLine(double[] movingAvg) {
+        fill(123);
+
+        double[] centerValue = new double[BOARD_WIDTH];
+        int centerValueindex = 0;
+
+        //Initialise a loop that iterates over each element of the movingAverage array of the terrain heights except for last
+        for (int i = 0; i < movingAvg.length - 1; i++) {
+            float x1 = i; // Starting x-coordinate
+            float y1 = HEIGHT - (float) movingAvg[i] * CELLSIZE;// Starting y-coordinate
+            float x2 = (i + 1); // Ending x-coordinate
+            float y2 = HEIGHT - (float) movingAvg[i + 1] * CELLSIZE ; // Ending y-coordinate
+    
+            if ((i % 16 == 0) && !(i % 32 == 0) && (i != 0)){
+                centerValue[centerValueindex] = (double) movingAvg[i];
+                centerValueindex ++;
+            }
+
+            line(x1, y1, x2, y2);
+
+        }
+        // We should be saving every 16th (15th with 0 indexing) value to place the trees and tanks
+        return centerValue;
     }
 
     public void loadLevel(int levelIndex){
@@ -85,27 +114,37 @@ public class App extends PApplet {
 
         //load the tile map
         String tileType = level.getString("layout");
-        map = ReadFile.loadArray(tileType);
-
+        char[][] mapFloor = ReadFile.loadArray(tileType);
+        
         //load the foreground colour
         String foregroundColour = level.getString("foreground-colour");
-        this.tiles = ReadFile.arrayToTiles(map, foregroundColour, null);
-        
-        //load the trees if any
-        if (level.getString("trees") != null){
-            String treeType = level.getString("trees");
-            String treePath = "src/main/resources/Tanks/" + treeType;
-            this.tiles = ReadFile.arrayToTiles(map, foregroundColour, treePath);
-        }
-        
-        //fix this idk where it goes
-        for (int row = 0; row < tiles.length; row++) {
-            for (int col = 0; col < tiles[0].length; col++) {
-                tiles[row][col].draw(this, CELLSIZE); // Pass the size of each tile
-            }
-        }
+        this.tiles = ReadFile.arrayToTiles(mapFloor, foregroundColour, null);
+
+        //Print out the heights
+        int[] heights = Terrain.heightTerrainElement(tiles);
+
+        //We don't need to smooth out the last 28th block - it remains blocky 
+        System.out.println("The size of the heights are " + heights.length);
+
+        //MicroArray
+        double[] micro = Terrain.getMicroscopicArray(heights);
+        double[] movingAvg = Terrain.movingAverage(micro, CELLSIZE);
+        double[] movingAvgAgain = Terrain.movingAverage(movingAvg, CELLSIZE);
+
+        drawSmoothLine(movingAvgAgain);
 
     }
+     
+        //Draw the tiles
+        /* 
+        for (int row = 0; row < this.tiles.length; row++) {
+            for (int col = 0; col < this.tiles[0].length; col++) {
+                tiles[row][col].draw(this); // Pass the size of each tile
+                }
+        }
+        */
+
+        
 
     /**
      * Receive key pressed signal from the keyboard.
@@ -134,15 +173,15 @@ public class App extends PApplet {
     public void mouseReleased(MouseEvent e) {
 
     }
-
+    
     /**
      * Draw all elements in the game by current frame.
      */
 	@Override
     public void draw() {
 
-        loadLevel(2);
     
+
         //----------------------------------
         //display HUD:
         //----------------------------------
@@ -161,7 +200,7 @@ public class App extends PApplet {
 
 
     public static void main(String[] args) {
-        PApplet.main("Tanks.App");
+        PApplet.main("Tanks.App"); 
     }
 
 }

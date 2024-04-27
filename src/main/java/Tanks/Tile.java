@@ -1,13 +1,12 @@
 package Tanks;
-import processing.core.PImage;
 import java.util.*;
 
 public class Tile{
     private String type; //is the tile a tree or a hill etc?
-    private int x, y;//row and column of tile
+    protected int x, y;//row and column of tile
 
-    private int[] rgb;
-    private String treePath;
+    protected int[] rgb;
+    protected String treePath;
     
     public Tile(String type, int x, int y){
         this.type = type;
@@ -15,20 +14,17 @@ public class Tile{
         this.y = y;
     }
 
+    public int getX(){
+        return this.x;
+    }
 
+    public int getY(){
+        return this.y;
+    }
+
+    
     public String getType(){
         return this.type;
-    }
-
-    public void setTree(String tree){
-        if (this.type != "tree"){
-            System.out.println("You are trying to set a tree for a non-tree type");
-        }
-        this.treePath = tree;
-    }
-
-    public String getTree(){
-        return this.treePath;
     }
 
     public void setColour(String colours){
@@ -51,23 +47,22 @@ public class Tile{
         return this.rgb;
     }
 
-    void draw(App app, int tileSize) {
-        int x = this.x * tileSize;
-        int y = this.y * tileSize;
+    public String toString(){
+        return "The tile is at row:" + getX() + ", col: " + getY();
+    }
+
+    void draw(App app) {
+        int x = this.x * App.CELLSIZE;
+        int y = this.y * App.CELLSIZE;
 
         if (this.type.equals("floor")) {
-            app.noStroke();
+            //app.noStroke();
             app.rectMode(app.CENTER);
             //Change the colour based on the foreground-colour
             app.fill(getColour()[0], getColour()[1], getColour()[2]);
-            app.rect(this.y*App.CELLSIZE + App.CELLSIZE/2, this.x*App.CELLSIZE + App.CELLSIZE/2, tileSize, tileSize);
-        } else if (this.type.equals("tree")) {
-            PImage tree = app.loadImage(getTree());
-            app.image(tree, this.y*App.CELLSIZE, this.x*App.CELLSIZE, tileSize, tileSize);
+            app.rect(this.y*App.CELLSIZE + App.CELLSIZE/2, this.x*App.CELLSIZE + App.CELLSIZE/2, App.CELLSIZE, App.CELLSIZE);
         }
 
-
-
     }
-    
+
 }

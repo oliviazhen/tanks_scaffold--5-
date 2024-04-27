@@ -1,167 +1,101 @@
 package Tanks;
 
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Scanner;
 import java.io.File;
 import java.io.FileNotFoundException;
 
-// Parse JSON
-import com.google.gson.Gson;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.Map;
+public class ReadFile{
 
+    public static char[][] loadArray(String filename) {
 
-public class ReadFile {
-
-    public static char[][] loadArray(String filename){
-
-        char[][] fullSize = new char[32][32]; 
-        ArrayList<char[]> terrain = new ArrayList<>();
-        char[][] terrainArray = new char[0][0]; 
-        int maxCols = 0;
-
+        // Hard coded to allow for extra tile at the last position WOMP :(
+        char[][] terrain = new char[App.BOARD_HEIGHT][App.BOARD_WIDTH + 1];
+    
         try {
             File file = new File(filename);
             Scanner scanner = new Scanner(file);
-
+    
             // Read the file line by line
-            while (scanner.hasNextLine()) {
-                String line = scanner.nextLine();
+            int row = 0;
+            while (row < 20 && scanner.hasNextLine()) {
 
+                String line = scanner.nextLine();
+                char[] terrainRow = new char[App.BOARD_WIDTH + 1];
+                    
                 // Skip empty lines
                 if (line.trim().isEmpty()) {
-                    terrain.add(new char[0]);
+                    terrain[row] = terrainRow;
+                    row ++;
                     continue;
                 }
 
-                // Initial dirty array that is too short
-                char[] lineChars = line.toCharArray();
-
-                // Replace invalid characters with '.'
-                for (int i = 0; i < lineChars.length; i++) {
-                    if (lineChars[i] != 'X' && lineChars[i] != 'T') {
-                        // If the current character is a space and the previous character was an 'X',
-                        // replace it with '.'
-                        if (lineChars[i] == ' ' && i > 0 && lineChars[i - 1] == 'X') {
-                            lineChars[i] = '.';
-                        }
-                        // Otherwise, replace it with '.'
-                        else {
-                            lineChars[i] = '.';
-                        }
+                // Convert line to char array of variable length
+                char[] variableTerrainRow = line.toCharArray();
+                
+                //For each 27 characters in the terrainRow, append the variableTerrainRow characters inside
+                for (int i = 0; i < terrainRow.length; i ++){
+                    if (i >= variableTerrainRow.length) break;
+                    else{
+                        terrainRow[i] = variableTerrainRow[i];
                     }
                 }
-
-                // Add the dirty array into the terrain arrayList where every element represents a row 
-                // We don't know how many rows we will have thus need for arrayList
-                terrain.add(lineChars);
-
-
-                // Update maxCols if necessary
-                if (lineChars.length > maxCols) {
-                    maxCols = lineChars.length;
-                }
+                terrain[row] = terrainRow;
+                row ++;
             }
 
-            // Print the terrain
-            /*
-            for (char[] line : terrain) {
-                System.out.println(line);
-            }
-            */
-
-            /* Terrain Array is a 2D matrix. 
-             * Rows is represented by the terrain.size() but should be represented by the size of the window
-             * Columns is represented by the maxCols
-             */
-
-
-            terrainArray = new char[terrain.size()][maxCols];
-
-            // Create the 2D array terrainArray with trailing columns "."
-            int index_all_rows = 0;
-
-            while (index_all_rows < terrainArray.length) {
-                int index_rowElements = 0;
-
-                // Copy elements from terrain.get(index_all_rows) to terrainArray[index_all_rows]
-                for (char c : terrain.get(index_all_rows)) {
-                    terrainArray[index_all_rows][index_rowElements] = c;
-                    index_rowElements++;
-                }
-
-                // Fill the remaining elements in the row with '.'
-                while (index_rowElements < terrainArray[index_all_rows].length) {
-                    terrainArray[index_all_rows][index_rowElements] = '.';
-                    index_rowElements++;
-                }
-
-                index_all_rows++;
-            }
-
-
-            // Traverse the terrainArray and fill in the bottom
-            for (int col = 0; col < terrainArray[0].length; col++) {
-                // For each column, loop over each row
-                for (int row = 0; row < terrainArray.length; row++) {
-                    char element = terrainArray[row][col]; 
-
-                    if (element == 'X') {
-                        // If the current element is 'X', replace 'X' for all rows below it in the same column
-                        for (int curr_row = row + 1; curr_row < terrainArray.length; curr_row++) {
-                            terrainArray[curr_row][col] = 'X';
-                        }
-                    }
-                }
-            }
-
-            char[] allX = new char[maxCols];
-            for (int a = 0; a < allX.length; a ++){
-                allX[a] = 'X';
-            }
-
-            for (int i = 0; i < terrainArray.length; i++){
-                fullSize[i] = terrainArray[i];
-            }
-
-            // After we have appended every terrainArray, if there are spare rows left we fill with allX
-            for (int i = terrainArray.length; i < fullSize.length; i++){
-                fullSize[i] = allX;
-            }
-
-            // Print the 2D array terrainArray (if needed)
-            /* 
-            for (char[] row : fullSize) {
-                for (char cell : row) {
-                    System.out.print(cell);
-                }
-                System.out.println();
-            }
-            */
-        
             scanner.close();
-        } catch (FileNotFoundException e) {
+
+            fillBottomX(terrain);
+            //printTerrain(terrain);
+            return terrain;
+            
+        }
+        catch (FileNotFoundException e) {
             System.out.println("File Not Found");
             e.printStackTrace();
         }
+        System.out.println("There is something wrong with your loading array");
+        return null;
+    }
 
-    return fullSize; 
+    public static char[][] fillBottomX(char[][] terrain) {
+
+        for (int row = 0; row < terrain.length; row++) {
+            for (int col = 0; col < terrain[row].length; col++) {
+
+                if (terrain[row][col] == 'X') {
+                    // If the current element is 'X', replace 'X' for all rows below it in the same column
+                    for (int curr_row = row + 1; curr_row < terrain.length; curr_row++) {
+                        terrain[curr_row][col] = 'X';
+                    }
+                }
+
+            }
+        }
+
+        return terrain;
+    }
+    
+    public static void printTerrain(char[][] terrain) {
+        for (int i = 0; i < terrain.length; i++) {
+            System.out.println(terrain[i]);
+        }
     }
 
     public static Tile[][] arrayToTiles(char[][] array, String colour, String treePath){
 
         Tile[][] tiles = new Tile[array.length][array[0].length];
-
         //learn to traverse the char array
+
+        System.out.println("The number of columns is " + array[0].length);
+
         for (int row = 0; row < array.length; row ++){
-            for (int col = 0; col < array[0].length; col ++){
+            for (int col = 0; col < array[row].length; col ++){
                 String type;
                 //designate each element in char[][] to a tile
-                if (array[row][col] == '.'){
-                    type = "empty";
-                }
-                else if (array[row][col] == 'X'){
+                if (array[row][col] == 'X'){
                     type = "floor";
 
                 }
@@ -169,21 +103,22 @@ public class ReadFile {
                     type = "tree";
                 }
                 else {
-                    type = "unknown";
+                    type = "empty";
                 }
-                //we don't need to create a tile for a character, they are handled with another class
-                
+    
                 //create the tile
                 tiles[row][col] = new Tile(type, row, col);
 
                 if (tiles[row][col].getType() == "floor") tiles[row][col].setColour(colour);
-                if (tiles[row][col].getType() == "tree") tiles[row][col].setTree(treePath);
-
+                if (tiles[row][col].getType() == "tree") {
+                    // Make the tile object a specific tree tile
+                    tiles[row][col] = new Tree(row, col);
+                    // When accessing the setTreeImage() in Tree class, I need to typecast to a Tree object
+                   ((Tree) tiles[row][col]).setTreeImage(treePath);
+                }
             }
         }
-
-    return tiles;
+        return tiles;
     }
-
-    
 }
+
