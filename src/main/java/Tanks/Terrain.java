@@ -75,8 +75,6 @@ public class Terrain {
 
         double[][] nested_heights = new double[heights.length][window.length];
         double[] fullArray = new double[heights.length * window.length];
-
-        System.out.println("This should be 28 " + nested_heights.length);
         
         for (int a = 0; a < nested_heights.length; a ++){
             nested_heights[a] = createWindow(window.length, heights, a);    
@@ -96,7 +94,6 @@ public class Terrain {
             System.out.print(eachExcrutiatingPixel + " ");
         }
         */
-        System.out.println("The full microscopic array length is: " + fullArray.length);
         return fullArray;
 
     }

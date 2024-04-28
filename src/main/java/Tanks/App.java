@@ -70,10 +70,42 @@ public class App extends PApplet{
         loadLevel(0);
     }
 
-    public void drawTree(PImage tree, int r, double c){
-        float row = r * CELLSIZE; // Adjust for cell size
-        float col = HEIGHT - (float) c * CELLSIZE; // Adjust for cell size
-        image(tree, row, col, CELLSIZE, CELLSIZE);
+    /**
+     *
+     * @param tree  We need to pass in the PImage that we want to load,
+     * Use the tiles to find the column positons of the actual trees since they aren't located on every of the 27 columns
+     * @param tiles  Figure out which one of the tiles are of Tree type to set the positions after loading
+     * @param height After smoothing, we need the new height values
+     */
+    public HashMap<Float, Float> newTreePositions(String treeImagePath, Tile[][] tiles, double[] smoothedValues){
+        PImage tree = loadImage(treeImagePath);
+
+        //HashMap sorted by Vertical, Horizontal
+        HashMap<Float, Float> treeCoordinates = new HashMap<Float, Float>();
+        Set<Float> treeVertical = new HashSet<>();
+
+        System.out.println("The vertical positions of the trees are:");
+        for (int i = 0; i < tiles.length; i ++){
+            for (int j = 0; j < tiles[i].length; j ++){
+                if (tiles[i][j].getType() == "tree"){
+                    System.out.printf("There is a tree at row %d, column %d. %n", i, j);
+                    treeVertical.add((float)j);
+                }
+            }
+        }
+
+        for (int i = 0; i < smoothedValues.length; i ++ ){
+            if (treeVertical.contains((float) i )){
+                System.out.printf("The new position of the tree is at row %d, column %d. %n",(int)(BOARD_HEIGHT - smoothedValues[i] + 1), i);
+                float x = (float) i * CELLSIZE;
+                float y = (float) (HEIGHT - ((smoothedValues[i] + 1) * CELLSIZE));
+                treeCoordinates.put(y, x);
+                image(tree, x, y, CELLSIZE, CELLSIZE);
+
+            }
+        }
+        return null;
+
     }
 
     public double[] drawSmoothLine(double[] movingAvg) {
@@ -93,7 +125,7 @@ public class App extends PApplet{
                 centerValue[centerValueindex] = (double) movingAvg[i];
                 centerValueindex ++;
             }
-
+            
             line(x1, y1, x2, y2);
 
         }
@@ -123,15 +155,18 @@ public class App extends PApplet{
         //Print out the heights
         int[] heights = Terrain.heightTerrainElement(tiles);
 
-        //We don't need to smooth out the last 28th block - it remains blocky 
-        System.out.println("The size of the heights are " + heights.length);
-
         //MicroArray
         double[] micro = Terrain.getMicroscopicArray(heights);
         double[] movingAvg = Terrain.movingAverage(micro, CELLSIZE);
         double[] movingAvgAgain = Terrain.movingAverage(movingAvg, CELLSIZE);
 
-        drawSmoothLine(movingAvgAgain);
+        double[] centerValues = drawSmoothLine(movingAvgAgain);
+
+        if (level.getString("trees") != null){
+            String path = "src/main/resources/Tanks/" + level.getString("trees");
+            newTreePositions(path,tiles, centerValues);
+        }
+        
 
     }
      

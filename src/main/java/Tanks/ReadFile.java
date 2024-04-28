@@ -89,8 +89,6 @@ public class ReadFile{
         Tile[][] tiles = new Tile[array.length][array[0].length];
         //learn to traverse the char array
 
-        System.out.println("The number of columns is " + array[0].length);
-
         for (int row = 0; row < array.length; row ++){
             for (int col = 0; col < array[row].length; col ++){
                 String type;
@@ -110,12 +108,7 @@ public class ReadFile{
                 tiles[row][col] = new Tile(type, row, col);
 
                 if (tiles[row][col].getType() == "floor") tiles[row][col].setColour(colour);
-                if (tiles[row][col].getType() == "tree") {
-                    // Make the tile object a specific tree tile
-                    tiles[row][col] = new Tree(row, col);
-                    // When accessing the setTreeImage() in Tree class, I need to typecast to a Tree object
-                   ((Tree) tiles[row][col]).setTreeImage(treePath);
-                }
+
             }
         }
         return tiles;
