@@ -67,15 +67,15 @@ public class App extends PApplet{
         // Load the JSON object upon setup
         jsonData = loadJSONObject("config.json");
 
-        loadLevel(2);
+        loadLevel(1);
     }
 
     /**
-     *
-     * @param tree  We need to pass in the PImage that we want to load,
-     * Use the tiles to find the column positons of the actual trees since they aren't located on every of the 27 columns
-     * @param tiles  Figure out which one of the tiles are of Tree type to set the positions after loading
-     * @param height After smoothing, we need the new height values
+     * Calculates the new positions of the trees according the the terrain heights
+     * @param treeImagePath
+     * @param tiles
+     * @param smoothedValues
+     * @return HashMap with each new position of the tree
      */
     public HashMap<Integer, Float> newTreePositions(String treeImagePath, Tile[][] tiles, double[] smoothedValues){
         PImage tree = loadImage(treeImagePath);
@@ -104,8 +104,14 @@ public class App extends PApplet{
 
     }
 
-    public double[] drawSmoothLine(double[] movingAvg) {
-        fill(123);
+    /**
+     * Calculates the moving average
+     * Need to update fill with the foreground colour
+     * @param movingAvg
+     * @return double[] which holds the X coordinates (relative to processing) for where the center of each 27 columns is
+     */
+    public double[] drawSmoothLine(int[] rgb, double[] movingAvg) {
+        stroke(rgb[0], rgb[1], rgb[2]);
 
         double[] centerValue = new double[BOARD_WIDTH];
         int centerValueindex = 0;
@@ -129,6 +135,36 @@ public class App extends PApplet{
         return centerValue;
     }
 
+    /**
+     * Draw a line of specified colour from the line to the bottom of the floor
+     * The starting point of the line is defined by the coordinates (x, y),
+     * The ending point of the line is defined by the coordinates (x, HEIGHT). 
+     * The HEIGHT variable represents the height of the window.
+     * @param rgb
+     * @param movingAverageHeights
+     */
+    public void drawFloor(int[] rgb, double[] movingAverageHeights) {
+        stroke(rgb[0], rgb[1], rgb[2]);
+    
+        for (int i = 0; i < movingAverageHeights.length; i++) {
+            float x = (float) i; //i is 864 for each "row" pixel
+            float y = HEIGHT - (float) movingAverageHeights[i]; // 640 for each "height" pixel
+            
+            line(x, y, x, HEIGHT);
+        }
+    }
+
+    public void drawPixel(int x, int y, int[] rgb) {
+        // Set the stroke color using the RGB values
+        stroke(rgb[0], rgb[1], rgb[2]);
+        
+        // Calculate the y-coordinate for the top of the window
+        int topY = TOPBAR; // Assuming TOPBAR is the distance from the top of the window to the top of the line
+        
+        // Draw a line from the specified point to the top of the window
+        line(x, y, x, topY);
+    }
+
     public void loadLevel(int levelIndex){
         JSONArray levels = jsonData.getJSONArray("levels");
         JSONObject level = levels.getJSONObject(levelIndex);
@@ -146,7 +182,15 @@ public class App extends PApplet{
         
         //load the foreground colour
         String foregroundColour = level.getString("foreground-colour");
-        this.tiles = ReadFile.arrayToTiles(mapFloor, foregroundColour, null);
+
+        String[] ls = foregroundColour.split(",");
+        int r = Integer.parseInt(ls[0]);
+        int g = Integer.parseInt(ls[1]);
+        int b = Integer.parseInt(ls[2]);
+
+        int[] int_colours = {r,g,b};
+
+        this.tiles = ReadFile.arrayToTiles(mapFloor, int_colours, null);
 
         //Print out the heights
         int[] heights = Terrain.heightTerrainElement(tiles);
@@ -156,9 +200,9 @@ public class App extends PApplet{
         double[] movingAvg = Terrain.movingAverage(micro, CELLSIZE);
         double[] movingAvgAgain = Terrain.movingAverage(movingAvg, CELLSIZE);
 
-        double[] centerValues = drawSmoothLine(movingAvgAgain);
+        double[] centerValues = drawSmoothLine(int_colours, movingAvgAgain);
 
-
+        //Set the trees if the txt file has 'em
         if (level.getString("trees") != null){
             //Traverse the tiles array again and create a tree object
             String path = "src/main/resources/Tanks/" + level.getString("trees");
@@ -172,9 +216,14 @@ public class App extends PApplet{
                 tree.setTreeImage(path);
                 tree.draw(this);
             }
-            
         }
-    
+
+        //make movingAvg again extend by the CELLSIZE to draw the floor
+        for (int i = 0; i < movingAvgAgain.length; i ++){
+            movingAvgAgain[i] = movingAvgAgain[i] * CELLSIZE;
+        }
+        drawFloor(int_colours, movingAvgAgain);
+
     }
      
         //Draw the tiles

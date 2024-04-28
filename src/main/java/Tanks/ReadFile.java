@@ -84,7 +84,7 @@ public class ReadFile{
         }
     }
 
-    public static Tile[][] arrayToTiles(char[][] array, String colour, String treePath){
+    public static Tile[][] arrayToTiles(char[][] array, int[] colours, String treePath){
 
         Tile[][] tiles = new Tile[array.length][array[0].length];
         //learn to traverse the char array
@@ -106,9 +106,7 @@ public class ReadFile{
     
                 //create the tile
                 tiles[row][col] = new Tile(type, row, col);
-
-                if (tiles[row][col].getType() == "floor") tiles[row][col].setColour(colour);
-
+                if (tiles[row][col].getType() == "floor") tiles[row][col].setColour(colours);
             }
         }
         return tiles;

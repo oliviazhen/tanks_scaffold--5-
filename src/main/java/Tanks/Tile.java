@@ -27,22 +27,10 @@ public class Tile{
         return this.type;
     }
 
-    public void setColour(String colours){
-        if (this.type != "floor"){
-            System.out.println("You are trying to set a colour for a non-floor type");
-        }
-        
-        // Make the string of 3 numbers into an integer array
-        String[] ls = colours.split(",");
-        int r = Integer.parseInt(ls[0]);
-        int g = Integer.parseInt(ls[1]);
-        int b = Integer.parseInt(ls[2]);
-
-        int[] int_colours = {r,g,b};
-
-        this.rgb = int_colours;
+    public void setColour(int[] colours){
+        this.rgb = colours;
     }
-    
+
     public int[] getColour(){
         return this.rgb;
     }
