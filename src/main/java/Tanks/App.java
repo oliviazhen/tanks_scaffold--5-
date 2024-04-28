@@ -67,7 +67,7 @@ public class App extends PApplet{
         // Load the JSON object upon setup
         jsonData = loadJSONObject("config.json");
 
-        loadLevel(0);
+        loadLevel(2);
     }
 
     /**
@@ -77,34 +77,30 @@ public class App extends PApplet{
      * @param tiles  Figure out which one of the tiles are of Tree type to set the positions after loading
      * @param height After smoothing, we need the new height values
      */
-    public HashMap<Float, Float> newTreePositions(String treeImagePath, Tile[][] tiles, double[] smoothedValues){
+    public HashMap<Integer, Float> newTreePositions(String treeImagePath, Tile[][] tiles, double[] smoothedValues){
         PImage tree = loadImage(treeImagePath);
 
-        //HashMap sorted by Vertical, Horizontal
-        HashMap<Float, Float> treeCoordinates = new HashMap<Float, Float>();
-        Set<Float> treeVertical = new HashSet<>();
+        //HashMap sorted by Vertical (column FIXED), Horizontal
+        HashMap<Integer, Float> treeCoordinates = new HashMap<Integer, Float>();
+        Set<Integer> treeVertical = new HashSet<>();
 
-        System.out.println("The vertical positions of the trees are:");
         for (int i = 0; i < tiles.length; i ++){
             for (int j = 0; j < tiles[i].length; j ++){
                 if (tiles[i][j].getType() == "tree"){
-                    System.out.printf("There is a tree at row %d, column %d. %n", i, j);
-                    treeVertical.add((float)j);
+                    //System.out.printf("There is a tree at row %d, column %d. %n", i, j);
+                    treeVertical.add(j);
                 }
             }
         }
 
         for (int i = 0; i < smoothedValues.length; i ++ ){
-            if (treeVertical.contains((float) i )){
-                System.out.printf("The new position of the tree is at row %d, column %d. %n",(int)(BOARD_HEIGHT - smoothedValues[i] + 1), i);
-                float x = (float) i * CELLSIZE;
-                float y = (float) (HEIGHT - ((smoothedValues[i] + 1) * CELLSIZE));
-                treeCoordinates.put(y, x);
-                image(tree, x, y, CELLSIZE, CELLSIZE);
-
+            if (treeVertical.contains(i)){
+                float yPositon = (float) (BOARD_HEIGHT - (smoothedValues[i] + 1));
+                int xPosition = i;
+                treeCoordinates.put(xPosition, yPositon);
             }
         }
-        return null;
+        return treeCoordinates;
 
     }
 
@@ -162,12 +158,23 @@ public class App extends PApplet{
 
         double[] centerValues = drawSmoothLine(movingAvgAgain);
 
-        if (level.getString("trees") != null){
-            String path = "src/main/resources/Tanks/" + level.getString("trees");
-            newTreePositions(path,tiles, centerValues);
-        }
-        
 
+        if (level.getString("trees") != null){
+            //Traverse the tiles array again and create a tree object
+            String path = "src/main/resources/Tanks/" + level.getString("trees");
+
+            HashMap<Integer, Float> treePositions = newTreePositions(path, tiles, centerValues);
+
+            for(Map.Entry<Integer,Float> entry: treePositions.entrySet()){
+                Integer column = entry.getKey();
+                Float row = entry.getValue();
+                Tree tree = new Tree(row,column);
+                tree.setTreeImage(path);
+                tree.draw(this);
+            }
+            
+        }
+    
     }
      
         //Draw the tiles

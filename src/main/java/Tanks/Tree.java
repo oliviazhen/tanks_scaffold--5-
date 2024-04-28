@@ -5,28 +5,29 @@ import processing.core.PImage;
 public class Tree {
     private String treePath;
     PImage tree;
-    private double x;
-    private double y;
 
-    public Tree(double x, double y) {
-        this.x = x;
-        this.y = y;
+    private float row;
+    private int column;
+
+    public Tree(float row, int column) {
+        this.row = row;
+        this.column = column;
     }
 
-    public double getX () {
-        return x;
+    public double getRow () {
+        return row;
     }
 
-    public double getY () {
-        return y;
+    public double getColumn () {
+        return column;
     }
 
-    public void setX (double newX) {
-        this.x = newX;
+    public void setRow(float newRow) {
+        this.row = newRow;
     }
 
-    public void setY (double newY) {
-        this.y = newY;
+    public void setCol(int newCol) {
+        this.column = newCol;
     }
 
     public void setTreeImage(String treePath) {
@@ -38,13 +39,12 @@ public class Tree {
     }
 
     public String getTreeCoordinates(){
-        return "The tree is at row " + getX() + " column " + getY();
+        return "The tree is at row " + getRow() + " column " + getColumn();
         // We can use the row coordinate and adjust the Y coordinate according to the line
     }
 
-
     public void draw(App app) {
         PImage tree = app.loadImage(getTreePath());
-        //app.image(tree, (int)(getY() * App.CELLSIZE), (int)(getX() * App.CELLSIZE), App.CELLSIZE, App.CELLSIZE);
+        app.image(tree, column * App.CELLSIZE, row * App.CELLSIZE, App.CELLSIZE, App.CELLSIZE);
     }
 }
