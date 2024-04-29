@@ -67,8 +67,11 @@ public class App extends PApplet{
         // Load the JSON object upon setup
         jsonData = loadJSONObject("config.json");
 
-        loadLevel(1);
+        loadLevel(2);
+  
     }
+
+    
 
     /**
      * Calculates the new positions of the trees according the the terrain heights
@@ -95,12 +98,41 @@ public class App extends PApplet{
 
         for (int i = 0; i < smoothedValues.length; i ++ ){
             if (treeVertical.contains(i)){
+                //Plus one due to layering?
                 float yPositon = (float) (BOARD_HEIGHT - (smoothedValues[i] + 1));
                 int xPosition = i;
                 treeCoordinates.put(xPosition, yPositon);
             }
         }
         return treeCoordinates;
+
+    }
+
+    public HashMap<Double, Double> newTankPositions(Tile[][] tiles, double[] smoothedValues){
+
+        //HashMap sorted by Vertical (column FIXED), Horizontal
+        HashMap<Double, Double> tankCoordinates = new HashMap<Double, Double>();
+        Set<Double> tankVertical = new HashSet<>();
+
+        for (int i = 0; i < tiles.length; i ++){
+            for (int j = 0; j < tiles[i].length; j ++){
+                if (tiles[i][j].getType() == "player"){
+                    //System.out.printf("Before smoothing: The tank is at row %d, column %d. %n", i, j);
+                    tankVertical.add((double) j);
+                }
+            }
+        }
+
+        for (int i = 0; i < smoothedValues.length; i ++ ){
+            if (tankVertical.contains((double) i)){
+                double yPositon = (double) (BOARD_HEIGHT - (smoothedValues[i]));
+                double xPosition = (double) i;
+                tankCoordinates.put(xPosition, yPositon);
+                //System.out.println("After smoothing: The tank should be at column " + xPosition + ", row " + yPositon);
+            }
+        }
+
+        return tankCoordinates;
 
     }
 
@@ -166,7 +198,8 @@ public class App extends PApplet{
     }
 
     public void loadLevel(int levelIndex){
-        JSONArray levels = jsonData.getJSONArray("levels");
+        JSONArray levels = jsonData.getJSONArray("levels");        
+
         JSONObject level = levels.getJSONObject(levelIndex);
 
         //load the background
@@ -182,13 +215,7 @@ public class App extends PApplet{
         
         //load the foreground colour
         String foregroundColour = level.getString("foreground-colour");
-
-        String[] ls = foregroundColour.split(",");
-        int r = Integer.parseInt(ls[0]);
-        int g = Integer.parseInt(ls[1]);
-        int b = Integer.parseInt(ls[2]);
-
-        int[] int_colours = {r,g,b};
+        int[] int_colours = UsefulFunctions.RBGToArray(foregroundColour);
 
         this.tiles = ReadFile.arrayToTiles(mapFloor, int_colours, null);
 
@@ -218,24 +245,75 @@ public class App extends PApplet{
             }
         }
 
-        //make movingAvg again extend by the CELLSIZE to draw the floor
+        // Make movingAvg again extend by the CELLSIZE to draw the floor
         for (int i = 0; i < movingAvgAgain.length; i ++){
             movingAvgAgain[i] = movingAvgAgain[i] * CELLSIZE;
         }
         drawFloor(int_colours, movingAvgAgain);
 
-    }
-     
-        //Draw the tiles
-        /* 
-        for (int row = 0; row < this.tiles.length; row++) {
-            for (int col = 0; col < this.tiles[0].length; col++) {
-                tiles[row][col].draw(this); // Pass the size of each tile
-                }
-        }
-        */
+        JSONObject playerColors = jsonData.getJSONObject("player_colours");
 
-        
+        //First, determine the positions of each player
+        HashMap<Character, Tank> players = new HashMap<>();
+
+        for (int i = 0; i < mapFloor.length; i++) {
+            for (int j = 0; j < mapFloor[i].length; j++) {
+                if (tiles[i][j].getType().equals("player")) { // Use equals() for string comparison
+                    // Pass j (column) as the X position and i (row) as the Y position
+                    Tank newTank = new Tank(j * CELLSIZE, i * CELLSIZE);
+                    //System.out.println("I have created a tank object initialised to row " + i + ", column " + j + " not accounting for cellsize.");
+                    players.put(mapFloor[i][j], newTank);
+                }
+            }
+        }
+        // Get the updated positions
+        HashMap<Double, Double> tankPositions = newTankPositions(tiles, centerValues);
+
+        for (Map.Entry<Double, Double> tankPos : tankPositions.entrySet()){
+            Double x = tankPos.getKey();
+            Double y = tankPos.getValue(); 
+            //System.out.println("This should be the smoothed row: " + y + " column: " + x);
+        }
+
+        // Update every player's position with the new tank positions
+        for (Map.Entry<Character, Tank> entry : players.entrySet()) {
+            Character c = entry.getKey();
+            Tank current_tank = entry.getValue(); //This is the tank object
+            
+            // Retrieve the current (pre-smoothed) tank positions
+            Double before_x = current_tank.getRow() / CELLSIZE;
+            Double before_y = current_tank.getColumn() / CELLSIZE;
+
+            // With the current tank's before_x value, I will find the new_y value by accessing tankPosition's before_x.
+            Double new_y = 0.0;
+            if (tankPositions.containsKey(before_x)){
+                new_y = tankPositions.get(before_x);
+                // Update the player's position to match the tank's position
+                current_tank.setPosition(new_y, before_x); // Update player's position
+            }
+   
+           // System.out.println("Character " + c + " is a tank named " + current_tank + " at column " + before_x  + " and at row " + new_y);
+
+        }
+
+        //Now, players should have the correct positions
+        for (Map.Entry<Character, Tank> entry : players.entrySet()) {
+            Character c = entry.getKey();
+            Tank current_tank = entry.getValue(); 
+            //System.out.println("Character " + c + " is a tank named " + current_tank + " at column " + current_tank.getColumn()  + " and at row " + current_tank.getRow());
+
+            // For each current tank, use the character to set the colours
+            if (playerColors.getString(String.valueOf(c)) != null){
+                String playerColour = playerColors.getString(String.valueOf(c));
+                int[] tank_colours = UsefulFunctions.RBGToArray(playerColour);
+                current_tank.setColour(tank_colours);
+                current_tank.draw(this);
+            }
+            else{
+                System.out.println("The player " + c + "does not have an assigned colour in JSON file");
+            }
+        }
+    }     
 
     /**
      * Receive key pressed signal from the keyboard.

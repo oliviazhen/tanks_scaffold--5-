@@ -88,20 +88,30 @@ public class ReadFile{
 
         Tile[][] tiles = new Tile[array.length][array[0].length];
         //learn to traverse the char array
+        int count = 0;
 
         for (int row = 0; row < array.length; row ++){
+
+            // Make empty lines into an empty character array
+            String arrayString = new String(array[row]);
+            if (arrayString.trim().isEmpty()){
+                //System.out.println(arrayString + " is empty");
+                char[] emptyArray = new char[array[row].length]; 
+                Arrays.fill(emptyArray, ' '); 
+                array[row] = emptyArray;
+            }
+
             for (int col = 0; col < array[row].length; col ++){
                 String type;
                 //designate each element in char[][] to a tile
-                if (array[row][col] == 'X'){
+                if (array[row][col] == 'X') {
                     type = "floor";
-
-                }
-                else if (array[row][col] == 'T'){
+                } else if (array[row][col] == 'T') {
                     type = "tree";
-                }
-                else {
+                } else if ((String.valueOf(array[row][col]).trim().isEmpty())) {
                     type = "empty";
+                } else {
+                    type = "player";
                 }
     
                 //create the tile
