@@ -30,6 +30,30 @@ public class Tree {
         this.column = newCol;
     }
 
+    public void randomisePosition(App app){
+        //System.out.println("The tree starts at row " + row + " column " + column);
+
+        //Convert to pixel position first
+        float pixelX = this.column * App.CELLSIZE;
+        float pixelY = this.row * App.CELLSIZE;
+
+        // Generate random offsets within the range of -15 to 15 pixels from the original position 
+        float offsettedX = app.random(-15, 15);
+        float offsettedY = app.random(-15, 15);
+
+        //System.out.println("Offset by " + offsettedX  + " , " + offsettedY);
+
+        float newX = offsettedX / app.CELLSIZE;
+        float newY = offsettedY / app.CELLSIZE;
+        
+        // Update the position of the tree
+        this.row += newY; // Convert pixels to cells
+        this.column += (int) (newX); // Convert pixels to cells
+
+        //System.out.println("The tree is at a new position of row " + row + " column " + column);
+
+    }
+
     public void setTreeImage(String treePath) {
         this.treePath = treePath;
     }
@@ -45,6 +69,7 @@ public class Tree {
 
     public void draw(App app) {
         PImage tree = app.loadImage(getTreePath());
+        this.randomisePosition(app);
         app.image(tree, column * App.CELLSIZE, row * App.CELLSIZE, App.CELLSIZE, App.CELLSIZE);
     }
 }

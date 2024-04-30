@@ -67,7 +67,7 @@ public class App extends PApplet{
         // Load the JSON object upon setup
         jsonData = loadJSONObject("config.json");
 
-        loadLevel(2);
+        loadLevel(0);
   
     }
 
@@ -229,27 +229,28 @@ public class App extends PApplet{
 
         double[] centerValues = drawSmoothLine(int_colours, movingAvgAgain);
 
-        //Set the trees if the txt file has 'em
-        if (level.getString("trees") != null){
-            //Traverse the tiles array again and create a tree object
-            String path = "src/main/resources/Tanks/" + level.getString("trees");
-
-            HashMap<Integer, Float> treePositions = newTreePositions(path, tiles, centerValues);
-
-            for(Map.Entry<Integer,Float> entry: treePositions.entrySet()){
-                Integer column = entry.getKey();
-                Float row = entry.getValue();
-                Tree tree = new Tree(row,column);
-                tree.setTreeImage(path);
-                tree.draw(this);
-            }
-        }
-
         // Make movingAvg again extend by the CELLSIZE to draw the floor
         for (int i = 0; i < movingAvgAgain.length; i ++){
             movingAvgAgain[i] = movingAvgAgain[i] * CELLSIZE;
         }
         drawFloor(int_colours, movingAvgAgain);
+
+                //Set the trees if the txt file has 'em
+                if (level.getString("trees") != null){
+                    //Traverse the tiles array again and create a tree object
+                    String path = "src/main/resources/Tanks/" + level.getString("trees");
+        
+                    HashMap<Integer, Float> treePositions = newTreePositions(path, tiles, centerValues);
+        
+                    for(Map.Entry<Integer,Float> entry: treePositions.entrySet()){
+                        Integer column = entry.getKey();
+                        Float row = entry.getValue();
+                        Tree tree = new Tree(row,column);
+                        tree.setTreeImage(path);
+                        tree.draw(this);
+                    }
+                }
+        
 
         JSONObject playerColors = jsonData.getJSONObject("player_colours");
 
@@ -348,9 +349,6 @@ public class App extends PApplet{
      */
 	@Override
     public void draw() {
-
-    
-
         //----------------------------------
         //display HUD:
         //----------------------------------
@@ -363,13 +361,14 @@ public class App extends PApplet{
         
 		//----------------------------------
         //----------------------------------
-
-        //TODO: Check user action
+            
     }
+
 
 
     public static void main(String[] args) {
         PApplet.main("Tanks.App"); 
+
     }
 
 }
