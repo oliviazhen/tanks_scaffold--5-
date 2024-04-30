@@ -71,10 +71,6 @@ public class Tank implements Turret {
         // Second rectangle has to be placed on top of the first rectangle.
         setSecondRectangle(row, column);
         app.rect((float)topRectX * App.CELLSIZE, (float)topRectY * App.CELLSIZE, TOP_TANK_WIDTH, TOP_TANK_HEIGHT);
-        
-        // Second rectangle has to be placed on top of the first rectangle.
-        setSecondRectangle(row, column);
-        app.rect((float)topRectX * App.CELLSIZE, (float)topRectY * App.CELLSIZE, TOP_TANK_WIDTH, TOP_TANK_HEIGHT);
         //System.out.println("The second rectangle is placed at column " + topRectX + " row " + topRectY);
 
         // Draw the turret
