@@ -163,27 +163,5 @@ public class Terrain {
         return resultArray;
     }
 
-    /* 
-    public static void main(String[] args){
-
-        char[][] arr = ReadFile.loadArray("level1.txt");
-
-        Tile[][] tiles = ReadFile.arrayToTiles(arr, "255,255,255", "src/main/resources/Tanks/tree1.png");
-
-        //Print out the heights
-        int[] heights = Terrain.heightTerrainElement(tiles);
-
-        //MicroArray
-        double[] micro = Terrain.getMicroscopicArray(heights);
-        double[] movingAvg = Terrain.movingAverage(micro, 32);
-        double[] movingAvgAgain = Terrain.movingAverage(movingAvg, 32);
-        
-        for(double microPixel: movingAvgAgain){
-            System.out.print(microPixel + " ");
-        }
-        
-    }
-    */
-
     
 }
