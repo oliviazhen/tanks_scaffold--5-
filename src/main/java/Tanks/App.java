@@ -41,7 +41,6 @@ public class App extends PApplet{
     PImage background;
     public int[] foregroundColourRBG;
     double[] movingAvg;
-    double[] movingAvgWithCELLSIZE;
 
     //create an array to store the terrain based on the levels
     Tile[][] tiles;
@@ -71,17 +70,21 @@ public class App extends PApplet{
     public void setup() {
         frameRate(FPS);
         jsonData = loadJSONObject("config.json");
-        ReadJSON.loadLevel(this, 2);
+        ReadJSON.loadLevel(this, 0);
 
+        /* 
         if (players.size() == 0){
             System.out.println("There are no players in the game");
         }
+        else{
+            currentPlayerKey = players.keySet().iterator().next();
+            current_player = players.get(currentPlayerKey);
 
-        currentPlayerKey = players.keySet().iterator().next();
-        current_player = players.get(currentPlayerKey);
+            draw.level(this);
 
-        draw.level(this);
-
+        }
+        */
+        
         //Print testing to ensure intitialisation is not null
         /* 
         System.out.println(background);
@@ -128,33 +131,36 @@ public class App extends PApplet{
         return treeCoordinates;
 
     }
-
-    public HashMap<Double, Double> newTankPositions(Tile[][] tiles, double[] smoothedValues){
-
+    /** The function saves the original column placement of the Tanks (via Tile[][])
+     * Using these coordinates, we will find the new center positions
+     * @param tiles
+     * @param smoothedValues
+     * @return
+     */
+    public HashMap<Double, Double> newTankYPositions(Tile[][] tiles, double[] centerValues){
         //HashMap sorted by Vertical (column FIXED), Horizontal
         HashMap<Double, Double> tankCoordinates = new HashMap<Double, Double>();
-        Set<Double> tankVertical = new HashSet<>();
+        Set<Double> tankX = new HashSet<>();
 
+        //Save the tank's vertical position. We will use this to find the correct index for the centerValues
         for (int i = 0; i < tiles.length; i ++){
             for (int j = 0; j < tiles[i].length; j ++){
                 if (tiles[i][j].getType() == "player"){
-                    //System.out.printf("Before smoothing: The tank is at row %d, column %d. %n", i, j);
-                    tankVertical.add((double) j);
+                    tankX.add((double) j * App.CELLSIZE);
                 }
             }
         }
-
-        for (int i = 0; i < smoothedValues.length; i ++ ){
-            if (tankVertical.contains((double) i)){
-                double yPositon = (double) (BOARD_HEIGHT - (smoothedValues[i]));
-                double xPosition = (double) i;
-                tankCoordinates.put(xPosition, yPositon);
-                //System.out.println("After smoothing: The tank should be at column " + xPosition + ", row " + yPositon);
+        //Using the X positions as indexes, find the corresponding centerValues to figure out the Y
+        for (int i = 0; i < centerValues.length; i++){
+            double newX = (double)i * App.CELLSIZE;
+            if (tankX.contains(newX)){
+                double xPosition = newX;
+                double yPosition = centerValues[i];
+                System.out.println(yPosition);
             }
         }
-
+        
         return tankCoordinates;
-
     }
 
     public void moveToNextPlayer() {
@@ -200,7 +206,6 @@ public class App extends PApplet{
         }
         
     }
-
     /**
      * Receive key released signal from the keyboard.
      */
@@ -245,7 +250,7 @@ public class App extends PApplet{
      */
 	@Override
     public void draw() {
-
+        /* 
         draw.level(this);
         current_player.display(this);
         current_player.update(this, deltaTimeInSeconds);
@@ -265,12 +270,11 @@ public class App extends PApplet{
 		//----------------------------------
         //----------------------------------
         
-
+        */
     }
     public static void main(String[] args) {
         PApplet.main("Tanks.App");
-        
-
+    
     }
 
 }

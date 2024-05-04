@@ -17,15 +17,15 @@ public class draw {
      * @param movingAvg
      * @return double[] which holds the X coordinates (relative to processing) for where the center of each 27 columns is
      */
-    public static void smoothLine(App app, int[] rgb, double[] movingAvgWithCELLSIZE) {
+    public static void smoothLine(App app, int[] rgb, double[] movingAverage) {
         app.stroke(rgb[0], rgb[1], rgb[2]);
 
         //Initialise a loop that iterates over each element of the movingAverage array of the terrain heights except for last
-        for (int i = 0; i < movingAvgWithCELLSIZE.length - 1; i++) {
+        for (int i = 0; i < movingAverage.length - 1; i++) {
             float x1 = i; // Starting x-coordinate
-            float y1 = app.HEIGHT - (float) movingAvgWithCELLSIZE[i];// Starting y-coordinate
+            float y1 = app.HEIGHT - (float) movingAverage[i];// Starting y-coordinate
             float x2 = (i + 1); // Ending x-coordinate
-            float y2 = app.HEIGHT - (float) movingAvgWithCELLSIZE[i + 1]; // Ending y-coordinate
+            float y2 = app.HEIGHT - (float) movingAverage[i + 1]; // Ending y-coordinate
     
             app.line(x1, y1, x2, y2);
         }
@@ -39,12 +39,12 @@ public class draw {
      * @param rgb
      * @param movingAverage
      */
-    public static void floor(App app, int[] rgb, double[] movingAvgWithCELLSIZE) {
+    public static void floor(App app, int[] rgb, double[] movingAverage) {
         app.stroke(rgb[0], rgb[1], rgb[2]);
     
-        for (int i = 0; i < movingAvgWithCELLSIZE.length; i++) {
+        for (int i = 0; i < movingAverage.length; i++) {
             float x = (float) i; //i is 864 for each "row" pixel
-            float y = app.HEIGHT - (float) movingAvgWithCELLSIZE[i]; // 640 for each "height" pixel
+            float y = app.HEIGHT - (float) movingAverage[i]; // 640 for each "height" pixel
             
             app.line(x, y, x, app.HEIGHT);
         }
@@ -155,8 +155,8 @@ public class draw {
     public static void level(App app){
 
         background(app, app.background);
-        smoothLine(app, app.foregroundColourRBG, app.movingAvgWithCELLSIZE);
-        floor(app, app.foregroundColourRBG, app.movingAvgWithCELLSIZE);
+        smoothLine(app, app.foregroundColourRBG, app.movingAvg);
+        floor(app, app.foregroundColourRBG, app.movingAvg);
         trees(app, app.trees);
 
         PImage wind = app.loadImage("src/main/resources/Tanks/wind.png");

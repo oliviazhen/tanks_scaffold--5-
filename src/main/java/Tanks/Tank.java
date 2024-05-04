@@ -12,8 +12,8 @@ public class Tank implements Turret {
     private int TOP_TANK_WIDTH = 20;
     private int TOP_TANK_HEIGHT = 8;
 
-    private double row; // Y coordinate without accounting for cellsize
-    private double column; // X coordinate without accounting for cellsize
+    private double X; // Y coordinate without accounting for cellsize
+    private double Y; // X coordinate without accounting for cellsize
     private double topRectX;
     private double topRectY;
     private double turretX;
@@ -27,15 +27,15 @@ public class Tank implements Turret {
 
     private int speed = 60;
 
-    public Tank(double row, double column) {
+    public Tank(double X, double Y) {
         // The parameters already account for CELLSIZE
-        this.row = row;
-        this.column = column;
+        this.X = X;
+        this.Y = Y;
 
     }
 
-    public double getRow() {
-        return row;
+    public double getX() {
+        return X;
     }
 
     public int getScore() {
@@ -48,8 +48,8 @@ public class Tank implements Turret {
         return health;
     }
 
-    public double getColumn() {
-        return column;
+    public double getY() {
+        return Y;
     }
 
     public int[] getColours(){
@@ -57,7 +57,7 @@ public class Tank implements Turret {
     }
 
     public int getFuelAmount(){
-        System.out.println("The new fuel amount is " + this.fuel);
+        //System.out.println("The new fuel amount is " + this.fuel);
         return this.fuel;
     }
 
@@ -65,9 +65,9 @@ public class Tank implements Turret {
         this.fuel -= fuel;
     }
 
-    public void setPosition(double newRow, double newCol){
-        this.row = newRow;
-        this.column = newCol;
+    public void setPosition(double newX, double newCol){
+        this.X = newX;
+        this.Y = newCol;
     }
 
     public void rotateTurret(double angle) {
@@ -83,22 +83,22 @@ public class Tank implements Turret {
         turretY = newTurretY;
     }    
 
-    public void setSecondRectangle(double row, double col){
-        double topRectX = col * App.CELLSIZE + (TANK_WIDTH - TOP_TANK_WIDTH) / 2; 
-        double topRectY = row * App.CELLSIZE - TOP_TANK_HEIGHT;
+    public void setSecondRectangle(double X, double col){
+        double topRectX = col + (TANK_WIDTH - TOP_TANK_WIDTH) / 2; 
+        double topRectY = X - TOP_TANK_HEIGHT;
 
-        this.topRectX = topRectX / App.CELLSIZE;
-        this.topRectY = topRectY / App.CELLSIZE;
+        this.topRectX = topRectX;
+        this.topRectY = topRectY;
     }  
     
     public void setTurret(double topRectX, double topRectY){
-        topRectX = topRectX * App.CELLSIZE;
-        topRectY = topRectY * App.CELLSIZE;
+        topRectX = topRectX;
+        topRectY = topRectY;
         double turretX = topRectX + (TOP_TANK_WIDTH - TURRET_WIDTH) / 2;
         double turretY = topRectY - TURRET_HEIGHT;
 
-        this.turretX = turretX / App.CELLSIZE;
-        this.turretY = turretY / App.CELLSIZE;
+        this.turretX = turretX;
+        this.turretY = turretY;
     }    
 
     public void setColour(int[] colours){
@@ -110,12 +110,12 @@ public class Tank implements Turret {
 
         if (app.left){
             System.out.println("The tank processes a left turn");
-            setPosition(row, column - 1); // Move left by the calculated pixels
+            setPosition(X, Y - 1); // Move left by the calculated pixels
             setFuelAmount(pixelsToMove); // Decrease fuel based on the distance moved
         }
         if (app.right){
             System.out.println("The tank processes a right turn");
-            setPosition(row, column + 1); // Move right by the calculated pixels
+            setPosition(X, Y + 1); // Move right by the calculated pixels
             setFuelAmount(pixelsToMove); // Decrease fuel based on the distance moved
         }
 
@@ -138,12 +138,12 @@ public class Tank implements Turret {
         // First rectangle
         app.fill(colours[0], colours[1], colours[2]);
         app.noStroke(); 
-        app.rect((float)column * app.CELLSIZE, (float)row * app.CELLSIZE, TANK_WIDTH, TANK_HEIGHT);
+        app.rect((float)Y, (float)X , TANK_WIDTH, TANK_HEIGHT);
         
         // Second rectangle has to be placed on top of the first rectangle.
-        setSecondRectangle(row, column);
-        app.rect((float)topRectX * app.CELLSIZE, (float)topRectY * app.CELLSIZE, TOP_TANK_WIDTH, TOP_TANK_HEIGHT);
-        //System.out.println("The second rectangle is placed at column " + topRectX + " row " + topRectY);
+        setSecondRectangle(X, Y);
+        app.rect((float)topRectX, (float)topRectY, TOP_TANK_WIDTH, TOP_TANK_HEIGHT);
+        //System.out.println("The second rectangle is placed at Y " + topRectX + " X " + topRectY);
 
         // Draw the turret
         setTurret(topRectX, topRectY);
@@ -155,8 +155,8 @@ public class Tank implements Turret {
     @Override
     public String toString() {
         return "Tank{" +
-                "row=" + row +
-                ", column=" + column +
+                "X=" + X +
+                ", Y=" + Y +
                 ", fuel=" + fuel +
                 ", health=" + health +
                 ", power=" + power +

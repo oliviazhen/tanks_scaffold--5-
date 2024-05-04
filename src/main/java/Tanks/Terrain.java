@@ -104,64 +104,58 @@ public class Terrain {
      * @param windowSize
      * @return Moving average double array; Size of the array decreases by (# - 32 + 1) at every turn
      */
+        public static double[] movingAverage(double[] microArray, int windowSize) {
     
-    public static double[] movingAverage(double[] microArray, int windowSize) {
-
-        //Make sure microArray is of 896 values
-        if (microArray.length != 896){
-            double[] microArrayExtended = new double[896];
-
-            for (int a = 0; a < microArrayExtended.length; a ++){
-
-                for (int i = 0; i < microArray.length; i ++){
+            // Make sure microArray is of 896 values
+            if (microArray.length != 896) {
+                double[] microArrayExtended = new double[896];
+    
+                for (int i = 0; i < microArray.length; i++) {
                     microArrayExtended[i] = microArray[i];
-                    a ++;
                 }
-
-                for (; a < microArrayExtended.length; a ++){
-                    microArrayExtended[a] = microArray[microArray.length - 1];
+    
+                for (int i = microArray.length; i < microArrayExtended.length; i++) {
+                    microArrayExtended[i] = microArray[microArray.length - 1];
                 }
-            }  
-            microArray = microArrayExtended; 
-        }
-
-        ArrayList<Double> result = new ArrayList<>();
-        double movingSum = 0;
     
-        // Initialise the result array with the first moving average. This should be te same as the first column terrain height
-        for (int i = 0; i < windowSize; i++) {
-            movingSum += microArray[i];
-        }
-        result.add(movingSum / windowSize);
+                microArray = microArrayExtended;
+            }
     
-        // Add the element that enters the window 
-        /* 
-        * We start off with i = 1 and we use this to access (i + 32 - 1) which means the next
-        element that enters the window is 32. This is consistant with the moving average since we start at i = 0
-        * We then subtract the element that we accessed already at the previous iteration from the moving sum
-        * The result is added to the resultArray
-        */ 
-        for (int i = 1; i <= microArray.length - windowSize; i++) {
-            movingSum += (microArray[i + windowSize - 1] - microArray[i - 1]);
+            ArrayList<Double> result = new ArrayList<>();
+            double movingSum = 0;
+    
+            // Initialize the result array with the first moving average.
+            for (int i = 0; i < windowSize; i++) {
+                movingSum += microArray[i];
+            }
             result.add(movingSum / windowSize);
-        }
     
-        double[] resultArray = new double[result.size()];
-        for (int i = 0; i < result.size(); i++) {
-            resultArray[i] = result.get(i);
-        }
+            // Calculate the moving average for subsequent windows.
+            for (int i = 1; i <= microArray.length - windowSize; i++) {
+                movingSum += (microArray[i + windowSize - 1] - microArray[i - 1]);
+                result.add(movingSum / windowSize);
+            }
     
-        //Print testing
-        /* 
-        for (double avg : resultArray) {
-            System.out.print(avg + " ");
-        }
-        */
-        
-        //System.out.println("The size of the averages array is " + resultArray.length);
+            // Convert ArrayList to double[]
+            double[] resultArray = new double[result.size()];
+            for (int i = 0; i < result.size(); i++) {
+                resultArray[i] = result.get(i);
+            }
     
-        return resultArray;
+            // Print testing
+            /*
+            int column = 1;
+            for (int i = 0; i < resultArray.length; i++) {
+                if ((i % 16 == 0) && (i % 32 != 0) && (i != 0)) {
+                    System.out.println("Column " + column + " has a height of " + resultArray[i]);
+                    column++;
+                }
+            }
+            */
+    
+            // System.out.println("The size of the averages array is " + resultArray.length);
+    
+            return resultArray;
+        }
     }
-
     
-}
