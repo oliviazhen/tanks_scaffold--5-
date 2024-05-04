@@ -67,8 +67,9 @@ public class Tree {
         // We can use the row coordinate and adjust the Y coordinate according to the line
     }
 
-    public void display(App app) {
+    public void draw(App app) {
         PImage tree = app.loadImage(getTreePath());
+        this.randomisePosition(app);
         app.image(tree, column * App.CELLSIZE, row * App.CELLSIZE, App.CELLSIZE, App.CELLSIZE);
     }
 }
