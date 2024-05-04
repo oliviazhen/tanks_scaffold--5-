@@ -47,22 +47,10 @@ public class ReadJSON {
 
         app.tiles = ReadFile.arrayToTiles(charTiles, app.foregroundColourRBG, null);
 
-        app.movingAvg = getMovingAverage(app, app.foregroundColourRBG, charTiles);
-        
-        /* 
-        int column = 1;
-        for (int i = 0; i < app.movingAvg.length; i++) {
-            if ((i % 16 == 0) && (i % 32 != 0) && (i != 0)) {
-                System.out.println("Column " + column + " has a height of " + app.movingAvg[i]);
-                app.fill(0);
-                app.ellipse((float)i, (float)app.movingAvg[i] * app.CELLSIZE, 10,10);
-                column++;
-            }
-        }
-        */
-        
-        /* 
+        app.movingAvg = smoothedTerrainLine(app, app.foregroundColourRBG, charTiles);
         double[] centerValues = getCenterValues(app.movingAvg);
+        app.movingAvgWithCELLSIZE = getMovingAverage(app.movingAvg);
+        System.out.print(app.movingAvgWithCELLSIZE[0]);
 
         //Set the trees if the txt file has 'em
         if (level.getString("trees") != null) setTrees(app, level, centerValues);
@@ -72,44 +60,21 @@ public class ReadJSON {
         setPlayerColors(app);
 
         updateTankPositionsAfterSmoothing(app, centerValues);
-        */
+
     }
 
-    public static double[] getMovingAverage(App app, int[] foregroundColourRBG, char[][] charTiles) {
+    public static double[] smoothedTerrainLine(App app, int[] foregroundColourRBG, char[][] charTiles) {
 
         int[] heights = Terrain.heightTerrainElement(app.tiles);
-
         double[] micro = Terrain.getMicroscopicArray(heights);
-
-        //this is where it goes wrong :(
         double[] movingAvg = Terrain.movingAverage(micro, app.CELLSIZE);
-        int column = 1;
-        for (int i = 0; i < micro.length; i++) {
-            if ((i % 16 == 0) && (i % 32 != 0)) {
-                System.out.println("Column " + column + " has a height of " + micro[i]);
-                app.fill(0);
-                app.ellipse(i, app.HEIGHT -((float) micro[i] * app.CELLSIZE), 10, 10);
-                column++;
-            }
-        }
-        
-    
-       //double[] firstGetCenterValues = getCenterValues(movingAvg);
-
-        /* 
         double[] secondMovingAvg = Terrain.movingAverage(movingAvg, app.CELLSIZE);
 
-       // Make it so that the secondMovingAverage (this being the Y values) will account for the CELLSIZE
-        for (int i = 0; i < secondMovingAvg.length; i ++){
-        secondMovingAvg[i] = secondMovingAvg[i] * app.CELLSIZE;
-        }
-
         return secondMovingAvg;
-        */
-        return null;
     }
 
     public static double[] getCenterValues(double[] movingAverage){
+
 
         double[] centerValues = new double[App.BOARD_WIDTH];
         int centerValueindex = 0;
@@ -117,13 +82,23 @@ public class ReadJSON {
         for (int i = 0; i < movingAverage.length; i ++){
             if ((i % 16 == 0) && !(i % 32 == 0) && (i != 0)){
                 centerValues[centerValueindex] = movingAverage[i];
-                System.out.println("At column " + (centerValueindex + 1) + " the Y coordinate is " + centerValues[centerValueindex] );
                 centerValueindex ++;
             }
         }
+
         return centerValues;
+
     }
 
+    public static double[] getMovingAverage(double[] movingAvg){
+
+        double[] movingAvgWithCELLSIZE = new double[movingAvg.length];
+        for (int i = 0; i < movingAvgWithCELLSIZE.length; i ++){
+            movingAvgWithCELLSIZE[i] = movingAvg[i] * App.CELLSIZE;
+        }
+
+        return movingAvgWithCELLSIZE;
+    }
     public static void setTrees(App app, JSONObject level, double[] centerValues) {     
             String path = "src/main/resources/Tanks/" + level.getString("trees");
 
@@ -165,18 +140,12 @@ public class ReadJSON {
     }
 
     public static void updateTankPositionsAfterSmoothing(App app, double[] centerValues){
-           // Vertical, Horizontal tank positions based on the centerValues
-           
-           for (Map.Entry<Character, Tank> entry : app.players.entrySet()) {
-            System.out.println("Before smoothing, the tank " + entry.getKey() + " is at column " + entry.getValue().getX() + " and row " + entry.getValue().getY());
-           }
-
-           app.tankPositions = app.newTankYPositions(app.tiles, centerValues);
+           // Get the updated positions
+           app.tankPositions = app.newTankPositions(app.tiles, centerValues);
 
            for (Map.Entry<Double, Double> tankPos : app.tankPositions.entrySet()){
-            //Get the key relative to the window AKA accounting for CELLSIZE
-               Double x = tankPos.getKey() * App.CELLSIZE;
-               Double y = tankPos.getValue() * App.CELLSIZE; 
+               Double x = tankPos.getKey();
+               Double y = tankPos.getValue(); 
            }
    
            // Update every player's position with the new tank positions
@@ -184,8 +153,8 @@ public class ReadJSON {
                Character c = entry.getKey();
                Tank current_tank = entry.getValue(); 
                
-               Double before_x = current_tank.getX();
-               Double before_y = current_tank.getY();
+               Double before_x = current_tank.getRow() / app.CELLSIZE;
+               Double before_y = current_tank.getColumn() / app.CELLSIZE;
    
                Double new_y = 0.0;
                if (app.tankPositions.containsKey(before_x)){

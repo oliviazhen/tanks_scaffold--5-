@@ -26,24 +26,34 @@ public class App extends PApplet{
     public static final int BOARD_WIDTH = WIDTH/CELLSIZE;
     public static final int BOARD_HEIGHT = 20;
 
+    int x = 0;
+    int y = 200;
+
     public static final int INITIAL_PARACHUTES = 1;
 
+    //Since your FPS is 30, each frame lasts for 1/30th of a second
+    //Since you have 30 frames per second, it needs to move (60 pixels / 30 frames) = 2 pixels per frame
     public static final int FPS = 30;
+    float deltaTimeInSeconds = 1.0f / FPS;
 
-    public String configPath;
-
-    public static Random random = new Random();
-	
-	// Feel free to add any additional methods or attributes you want. Please put classes in different files.
-    PImage imageType;
+    //All JSON variables
     JSONObject jsonData;
+    PImage background;
+    public int[] foregroundColourRBG;
+    double[] movingAvg;
+    double[] movingAvgWithCELLSIZE;
 
     //create an array to store the terrain based on the levels
     Tile[][] tiles;
-    double[] movingAvg;
+    HashMap<Character, Tank> players = new HashMap<>();
+    HashMap<Double, Double> tankPositions = new HashMap<>();
+    Set<Tree> trees = new HashSet<>();
+    Character currentPlayerKey;
+    Tank current_player;
+    boolean left, right, up, down;
+
 
     public App() {
-        this.configPath = "config.json";
     }
 
     /**
@@ -60,18 +70,29 @@ public class App extends PApplet{
 	@Override
     public void setup() {
         frameRate(FPS);
-		//See PApplet javadoc:
-		//loadJSONObject(configPath);
-		//loadImage(this.getClass().getResource("src/main/resources/basic.png").getPath().toLowerCase(Locale.ROOT).replace("%20", " "));
-
-        // Load the JSON object upon setup
         jsonData = loadJSONObject("config.json");
+        ReadJSON.loadLevel(this, 2);
 
-        loadLevel(0);
-  
+        if (players.size() == 0){
+            System.out.println("There are no players in the game");
+        }
+
+        currentPlayerKey = players.keySet().iterator().next();
+        current_player = players.get(currentPlayerKey);
+
+        draw.level(this);
+
+        //Print testing to ensure intitialisation is not null
+        /* 
+        System.out.println(background);
+        System.out.println(jsonData);
+        System.out.println(smoothedTerrainLine.length);
+        System.out.println(tiles.length);
+        System.out.println(players.entrySet());
+        System.out.println(tankPositions);
+        System.out.println(trees);
+        */
     }
-
-    
 
     /**
      * Calculates the new positions of the trees according the the terrain heights
@@ -136,191 +157,47 @@ public class App extends PApplet{
 
     }
 
-    /**
-     * Calculates the moving average
-     * Need to update fill with the foreground colour
-     * @param movingAvg
-     * @return double[] which holds the X coordinates (relative to processing) for where the center of each 27 columns is
-     */
-    public double[] drawSmoothLine(int[] rgb, double[] movingAvg) {
-        stroke(rgb[0], rgb[1], rgb[2]);
+    public void moveToNextPlayer() {
+        Object[] keys = players.keySet().toArray();
 
-        double[] centerValue = new double[BOARD_WIDTH];
-        int centerValueindex = 0;
-
-        //Initialise a loop that iterates over each element of the movingAverage array of the terrain heights except for last
-        for (int i = 0; i < movingAvg.length - 1; i++) {
-            float x1 = i; // Starting x-coordinate
-            float y1 = HEIGHT - (float) movingAvg[i] * CELLSIZE;// Starting y-coordinate
-            float x2 = (i + 1); // Ending x-coordinate
-            float y2 = HEIGHT - (float) movingAvg[i + 1] * CELLSIZE ; // Ending y-coordinate
-    
-            if ((i % 16 == 0) && !(i % 32 == 0) && (i != 0)){
-                centerValue[centerValueindex] = (double) movingAvg[i];
-                centerValueindex ++;
+        int currentIndex = -1;
+        for (int i = 0; i < keys.length; i++) {
+            if ((char) keys[i] == currentPlayerKey) {
+                currentIndex = i;
+                break;
             }
-            
-            line(x1, y1, x2, y2);
-
         }
-        // We should be saving every 16th (15th with 0 indexing) value to place the trees and tanks
-        return centerValue;
+        int nextIndex = (currentIndex + 1) % keys.length;
+        currentPlayerKey = (char) keys[nextIndex];
+        current_player = players.get(currentPlayerKey);
     }
-
-    /**
-     * Draw a line of specified colour from the line to the bottom of the floor
-     * The starting point of the line is defined by the coordinates (x, y),
-     * The ending point of the line is defined by the coordinates (x, HEIGHT). 
-     * The HEIGHT variable represents the height of the window.
-     * @param rgb
-     * @param movingAverageHeights
-     */
-    public void drawFloor(int[] rgb, double[] movingAverageHeights) {
-        stroke(rgb[0], rgb[1], rgb[2]);
-    
-        for (int i = 0; i < movingAverageHeights.length; i++) {
-            float x = (float) i; //i is 864 for each "row" pixel
-            float y = HEIGHT - (float) movingAverageHeights[i]; // 640 for each "height" pixel
-            
-            line(x, y, x, HEIGHT);
-        }
-    }
-
-    public void drawPixel(int x, int y, int[] rgb) {
-        // Set the stroke color using the RGB values
-        stroke(rgb[0], rgb[1], rgb[2]);
-        
-        // Calculate the y-coordinate for the top of the window
-        int topY = TOPBAR; // Assuming TOPBAR is the distance from the top of the window to the top of the line
-        
-        // Draw a line from the specified point to the top of the window
-        line(x, y, x, topY);
-    }
-
-    public void loadLevel(int levelIndex){
-        JSONArray levels = jsonData.getJSONArray("levels");        
-
-        JSONObject level = levels.getJSONObject(levelIndex);
-
-        //load the background
-        String backgroundName = level.getString("background");
-        String backgroundPath = "src/main/resources/Tanks/" + backgroundName;
-        
-        imageType = loadImage(backgroundPath);
-        image(imageType, 0, 0);
-
-        //load the tile map
-        String tileType = level.getString("layout");
-        char[][] mapFloor = ReadFile.loadArray(tileType);
-        
-        //load the foreground colour
-        String foregroundColour = level.getString("foreground-colour");
-        int[] int_colours = UsefulFunctions.RBGToArray(foregroundColour);
-
-        this.tiles = ReadFile.arrayToTiles(mapFloor, int_colours, null);
-
-        //Print out the heights
-        int[] heights = Terrain.heightTerrainElement(tiles);
-
-        //MicroArray
-        double[] micro = Terrain.getMicroscopicArray(heights);
-        double[] movingAvg = Terrain.movingAverage(micro, CELLSIZE);
-        double[] movingAvgAgain = Terrain.movingAverage(movingAvg, CELLSIZE);
-
-        double[] centerValues = drawSmoothLine(int_colours, movingAvgAgain);
-
-        // Make movingAvg again extend by the CELLSIZE to draw the floor
-        for (int i = 0; i < movingAvgAgain.length; i ++){
-            movingAvgAgain[i] = movingAvgAgain[i] * CELLSIZE;
-        }
-        drawFloor(int_colours, movingAvgAgain);
-
-                //Set the trees if the txt file has 'em
-                if (level.getString("trees") != null){
-                    //Traverse the tiles array again and create a tree object
-                    String path = "src/main/resources/Tanks/" + level.getString("trees");
-        
-                    HashMap<Integer, Float> treePositions = newTreePositions(path, tiles, centerValues);
-        
-                    for(Map.Entry<Integer,Float> entry: treePositions.entrySet()){
-                        Integer column = entry.getKey();
-                        Float row = entry.getValue();
-                        Tree tree = new Tree(row,column);
-                        tree.setTreeImage(path);
-                        tree.draw(this);
-                    }
-                }
-        
-
-        JSONObject playerColors = jsonData.getJSONObject("player_colours");
-
-        //First, determine the positions of each player
-        HashMap<Character, Tank> players = new HashMap<>();
-
-        for (int i = 0; i < mapFloor.length; i++) {
-            for (int j = 0; j < mapFloor[i].length; j++) {
-                if (tiles[i][j].getType().equals("player")) { // Use equals() for string comparison
-                    // Pass j (column) as the X position and i (row) as the Y position
-                    Tank newTank = new Tank(j * CELLSIZE, i * CELLSIZE);
-                    //System.out.println("I have created a tank object initialised to row " + i + ", column " + j + " not accounting for cellsize.");
-                    players.put(mapFloor[i][j], newTank);
-                }
-            }
-        }
-        // Get the updated positions
-        HashMap<Double, Double> tankPositions = newTankPositions(tiles, centerValues);
-
-        for (Map.Entry<Double, Double> tankPos : tankPositions.entrySet()){
-            Double x = tankPos.getKey();
-            Double y = tankPos.getValue(); 
-            //System.out.println("This should be the smoothed row: " + y + " column: " + x);
-        }
-
-        // Update every player's position with the new tank positions
-        for (Map.Entry<Character, Tank> entry : players.entrySet()) {
-            Character c = entry.getKey();
-            Tank current_tank = entry.getValue(); //This is the tank object
-            
-            // Retrieve the current (pre-smoothed) tank positions
-            Double before_x = current_tank.getRow() / CELLSIZE;
-            Double before_y = current_tank.getColumn() / CELLSIZE;
-
-            // With the current tank's before_x value, I will find the new_y value by accessing tankPosition's before_x.
-            Double new_y = 0.0;
-            if (tankPositions.containsKey(before_x)){
-                new_y = tankPositions.get(before_x);
-                // Update the player's position to match the tank's position
-                current_tank.setPosition(new_y, before_x); // Update player's position
-            }
-   
-           // System.out.println("Character " + c + " is a tank named " + current_tank + " at column " + before_x  + " and at row " + new_y);
-
-        }
-
-        //Now, players should have the correct positions
-        for (Map.Entry<Character, Tank> entry : players.entrySet()) {
-            Character c = entry.getKey();
-            Tank current_tank = entry.getValue(); 
-            //System.out.println("Character " + c + " is a tank named " + current_tank + " at column " + current_tank.getColumn()  + " and at row " + current_tank.getRow());
-
-            // For each current tank, use the character to set the colours
-            if (playerColors.getString(String.valueOf(c)) != null){
-                String playerColour = playerColors.getString(String.valueOf(c));
-                int[] tank_colours = UsefulFunctions.RBGToArray(playerColour);
-                current_tank.setColour(tank_colours);
-                current_tank.draw(this);
-            }
-            else{
-                System.out.println("The player " + c + "does not have an assigned colour in JSON file");
-            }
-        }
-    }     
 
     /**
      * Receive key pressed signal from the keyboard.
      */
 	@Override
     public void keyPressed(KeyEvent event){
+        //Tank movement
+        if (keyCode == LEFT) {
+            left = true;
+            System.out.println("You are pressing left");
+        }
+        if (keyCode == RIGHT) {
+            right = true;
+            System.out.println("You are pressing right");
+        }
+        //Turret Movement
+        if (keyCode == UP) {
+            up = true;
+            System.out.println("You are pressing up");
+        }
+        if (keyCode == DOWN) {
+            down = true;
+            System.out.println("You are pressing down");
+        }
+        if (keyCode == ' ') {
+            moveToNextPlayer();
+        }
         
     }
 
@@ -329,14 +206,33 @@ public class App extends PApplet{
      */
 	@Override
     public void keyReleased(){
-        
+
+        //Tank Movement
+        if (keyCode == LEFT ) {
+            left = false;
+            System.out.println("You are releasing left");
+        }
+        if (keyCode == RIGHT) {
+            right = false;
+            System.out.println("You are releasing right");
+        }
+
+        //Turret Movement
+        if (keyCode == UP) {
+            up = false;
+            System.out.println("You are releasing up");
+        }
+        if (keyCode == DOWN) {
+            down = false;
+            System.out.println("You are releasing down");
+        }
+
+
     }
 
     @Override
     public void mousePressed(MouseEvent e) {
         //TODO - powerups, like repair and extra fuel and teleport
-
-
     }
 
     @Override
@@ -349,25 +245,31 @@ public class App extends PApplet{
      */
 	@Override
     public void draw() {
+
+        draw.level(this);
+        current_player.display(this);
+        current_player.update(this, deltaTimeInSeconds);
+
+
         //----------------------------------
         //display HUD:
         //----------------------------------
         //TODO
 
         //----------------------------------
-        //display scoreboard:
+        //display scoreboard: 
+        draw.scoreboard(this,players);
         //----------------------------------
         //TODO
         
 		//----------------------------------
         //----------------------------------
-            
+        
+
     }
-
-
-
     public static void main(String[] args) {
-        PApplet.main("Tanks.App"); 
+        PApplet.main("Tanks.App");
+        
 
     }
 
