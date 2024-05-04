@@ -248,8 +248,7 @@ public class App extends PApplet{
 
         draw.level(this);
         current_player.display(this);
-        current_player.update(this, deltaTimeInSeconds);
-
+        current_player.update(this);
 
         //----------------------------------
         //display HUD:
