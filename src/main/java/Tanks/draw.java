@@ -75,6 +75,15 @@ public class draw {
 
     }
 
+    public static void arrow(App app, Tank currentPlayer){
+        float x = (float) currentPlayer.getColumn() * App.CELLSIZE + 15;
+        float y = (float) currentPlayer.getRow() * App.CELLSIZE - 60;
+        
+        app.fill(0);
+        app.rect(x - 5, y - 100, 10, 100);
+        app.triangle(x - 20, y - 30, x, y + 20, x + 20, y - 30);
+    }
+
     public static void playerFuel(App app, Tank tank){
         app.fill(0);
         app.textSize(15);
@@ -150,9 +159,9 @@ public class draw {
         app.image(background, 0, 0);
     }
 
-
     
     public static void level(App app){
+
 
         background(app, app.background);
         smoothLine(app, app.foregroundColourRBG, app.movingAvgWithCELLSIZE);
@@ -167,6 +176,8 @@ public class draw {
         app.image(fuel, 150, 10);
         playerTurn(app, app.currentPlayerKey);
         playerFuel(app, app.current_player);
+        healthBar(app,app.current_player);
+        //arrow(app, app.current_player);
     }
     
 

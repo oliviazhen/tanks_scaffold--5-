@@ -31,10 +31,8 @@ public class App extends PApplet{
 
     public static final int INITIAL_PARACHUTES = 1;
 
-    //Since your FPS is 30, each frame lasts for 1/30th of a second
-    //Since you have 30 frames per second, it needs to move (60 pixels / 30 frames) = 2 pixels per frame
     public static final int FPS = 30;
-    float deltaTimeInSeconds = 1.0f / FPS;
+
 
     //All JSON variables
     JSONObject jsonData;
@@ -50,7 +48,8 @@ public class App extends PApplet{
     Set<Tree> trees = new HashSet<>();
     Character currentPlayerKey;
     Tank current_player;
-    boolean left, right, up, down;
+    ArrayList<Projectile> p_ls;
+    boolean left, right, up, down, w, s, space;
 
 
     public App() {
@@ -69,7 +68,7 @@ public class App extends PApplet{
      */
 	@Override
     public void setup() {
-        frameRate(FPS);
+        frameRate(FPS);        
         jsonData = loadJSONObject("config.json");
         ReadJSON.loadLevel(this, 2);
 
@@ -180,23 +179,29 @@ public class App extends PApplet{
         //Tank movement
         if (keyCode == LEFT) {
             left = true;
-            System.out.println("You are pressing left");
         }
         if (keyCode == RIGHT) {
             right = true;
-            System.out.println("You are pressing right");
         }
         //Turret Movement
         if (keyCode == UP) {
             up = true;
-            System.out.println("You are pressing up");
         }
         if (keyCode == DOWN) {
             down = true;
-            System.out.println("You are pressing down");
         }
         if (keyCode == ' ') {
-            moveToNextPlayer();
+            space = true;
+  
+        }
+        //Turret Power
+        if (keyCode == 'W'){
+            System.out.println("w registers");
+            w = true;
+        }
+        if (keyCode == 'S'){
+            System.out.println("S registers");
+            s = true;
         }
         
     }
@@ -210,23 +215,30 @@ public class App extends PApplet{
         //Tank Movement
         if (keyCode == LEFT ) {
             left = false;
-            System.out.println("You are releasing left");
         }
         if (keyCode == RIGHT) {
             right = false;
-            System.out.println("You are releasing right");
         }
 
         //Turret Movement
         if (keyCode == UP) {
             up = false;
-            System.out.println("You are releasing up");
         }
         if (keyCode == DOWN) {
             down = false;
-            System.out.println("You are releasing down");
         }
 
+        if (keyCode == ' ') {
+            space = false;
+        }
+
+        //Turret Power
+        if (keyCode == 'w'){
+            w = false;
+        }
+        if (keyCode == 's'){
+            s = false;
+        }
 
     }
 
@@ -240,36 +252,41 @@ public class App extends PApplet{
 
     }
     
-    /**
+    /** 
      * Draw all elements in the game by current frame.
      */
-	@Override
+    @Override
     public void draw() {
 
         draw.level(this);
-        current_player.display(this);
-        current_player.update(this);
-
-        //----------------------------------
-        //display HUD:
-        //----------------------------------
-        //TODO
-
-        //----------------------------------
-        //display scoreboard: 
-        draw.scoreboard(this,players);
-        //----------------------------------
-        //TODO
+     
+        for (Map.Entry<Character, Tank> player: players.entrySet()){
+            player.getValue().display(this);
+        }
         
-		//----------------------------------
-        //----------------------------------
-        
+        current_player.update(this); 
+    
+        // If the space is activated, let the projectile move out of frame before we switch the player
+        p_ls = current_player.getProjectiles();
 
+        if (!p_ls.isEmpty()){
+            Projectile bullet = p_ls.get(0);
+            bullet.display(this);
+            bullet.move();
+
+            if (bullet.checkRemove()) {
+                space = false;
+                moveToNextPlayer();
+            }
+        }
+        // Display HUD
+    
+        // Display scoreboard
+        draw.scoreboard(this, players);
     }
+    
     public static void main(String[] args) {
         PApplet.main("Tanks.App");
-        
-
     }
 
 }

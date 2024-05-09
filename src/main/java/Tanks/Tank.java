@@ -1,9 +1,10 @@
 package Tanks;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import processing.core.PApplet;
 
-public class Tank implements Turret {
+public class Tank{
 
     private int[] colours = new int[3];
 
@@ -16,28 +17,27 @@ public class Tank implements Turret {
     private double column; // X coordinate without accounting for cellsize
     private double topRectX;
     private double topRectY;
-    private double turretX;
-    private double turretY;
-    public double turretAngle = 0;
 
     private int fuel = 250;
     private int health = 100;
     private int power = 50;
+    private int turretPower = 100;
     private int score = 0;
 
     private int speed = 60;
+
+    private Turret turret = new Turret(0,0);
+    private ArrayList<Projectile> projectiles = new ArrayList<Projectile>();
 
     public Tank(double row, double column) {
         // The parameters already account for CELLSIZE
         this.row = row;
         this.column = column;
-
     }
 
     public double getRow() {
         return row;
     }
-
     public int getScore() {
         return score;
     }
@@ -65,6 +65,22 @@ public class Tank implements Turret {
         this.fuel -= fuel;
     }
 
+    public void changeTurretPower(int addOrSubtract){
+        int AMOUNT = 36;
+        if (addOrSubtract > 0){
+            if (this.turretPower + AMOUNT > 100){
+                this.turretPower = 100;
+            }
+            else this.turretPower += AMOUNT;
+        }
+        else{
+            if (this.turretPower - AMOUNT < 0){
+                this.turretPower = 0;
+            }
+            else this.turretPower -= AMOUNT;
+        }
+    }
+    
     public void setPosition(double newRow, double newCol){
         this.row = newRow;
         this.column = newCol;
@@ -83,57 +99,108 @@ public class Tank implements Turret {
     }  
 
     public void rotateTurret(double angle) {
-
         topRectX = topRectX * App.CELLSIZE;
         topRectY = topRectY * App.CELLSIZE;
 
+        if (angle < -90){
+            angle = -90;
+        }
+        if (angle > 90){
+            angle = 90;
+        }
+
         // Calculate the new position of the turret based on the angle
         double radians = Math.toRadians(angle);
+
         double xOffset = Math.cos(radians) * (TOP_TANK_WIDTH / 2);
         double yOffset = Math.sin(radians) * (TOP_TANK_WIDTH / 2);
         double newTurretX = topRectX + xOffset;
         double newTurretY = topRectY - yOffset;
     
         // Update the turret position
-        turretX = newTurretX / App.CELLSIZE;
-        turretY = newTurretY / App.CELLSIZE;
+        this.turret.setPosition(newTurretX / App.CELLSIZE, newTurretY / App.CELLSIZE);
     }    
     
     public void setTurret(double topRectX, double topRectY){
+
         topRectX = topRectX * App.CELLSIZE;
         topRectY = topRectY * App.CELLSIZE;
         double turretX = topRectX + (TOP_TANK_WIDTH) / 2;
         double turretY = topRectY;
 
-        this.turretX = turretX / App.CELLSIZE;
-        this.turretY = turretY / App.CELLSIZE;
-    }    
+        //Create a new turret
+        this.turret.setPosition(turretX / App.CELLSIZE, turretY / App.CELLSIZE);
+    }
 
-    public void update(App app){
+    public void addProjectile(Turret t) {
+        // Calculate the position of the projectile based on turret position and angle
+        double projectileX = t.getX() * App.CELLSIZE;
+        double projectileY = t.getY() * App.CELLSIZE;
 
-        if (app.left){
-            setPosition(row, column - 1);
+        // Create a new projectile and add it to the list
+        Projectile projectile = new Projectile((float) projectileX, (float) projectileY, t.getAngle());
+
+        // Add an extra layer of control so that we only have one projectile in the array
+        //this.projectiles.add(projectile);
+        if (projectiles.isEmpty()){
+            this.projectiles.add(projectile);
             
         }
-        if (app.right){
-            setPosition(row, column + 1); 
+        else{
+            projectiles = new ArrayList<Projectile>();
+            projectiles.add(projectile);
         }
+    }
 
+    public ArrayList<Projectile> getProjectiles(){
+        return this.projectiles;
+    }
+    
+    public Turret getTurret(){
+        if (this.turret != null){
+            return this.turret;
+        }
+        return null;
+    }
+
+    public void update(App app) {
+
+        if (app.left) {
+            setPosition(row, ((column * App.CELLSIZE) + 60) / App.CELLSIZE);
+        }
+    
+        if (app.right) {
+            setPosition(row, ((column * App.CELLSIZE) + 60) / App.CELLSIZE);
+        }
+    
         if (app.up) {
             // Rotate turret left
-            turretAngle -= 5;
-            rotateTurret(turretAngle);
-
+            int newAngle = this.turret.getAngle() - 5;
+            this.turret.setAngle(newAngle);
+            rotateTurret(newAngle);
         }
         if (app.down) {
             // Rotate turret right
-            turretAngle += 5;
-            rotateTurret(turretAngle);
+            int newAngle = this.turret.getAngle() + 5;
+            this.turret.setAngle(newAngle);
+            rotateTurret(newAngle);
         }
-        
+        if (app.w) {
+            changeTurretPower(2);
+        }
+        if (app.s) {
+            changeTurretPower(-1);
+        }
+        if (app.space) {
+            if ((this.turret.getX() == 0) && (this.turret.getY() == 0)) {
+                System.out.println("The turret is not in the correct position.");
+            } else {
+                this.addProjectile(this.turret);
+            }
+        }
     }
+    
     public void display(App app) {
-
         // First rectangle
         app.fill(colours[0], colours[1], colours[2]);
         app.noStroke(); 
@@ -145,17 +212,30 @@ public class Tank implements Turret {
     
         // Draw the turret
         setTurret(topRectX, topRectY);
-        app.pushMatrix(); 
-        app.translate((float)turretX * app.CELLSIZE, (float)turretY * app.CELLSIZE); 
-    
-        double limitedAngle = Math.max(-90, Math.min(90, turretAngle)); 
-        app.rotate((float)Math.toRadians(limitedAngle)); 
+        Turret t = this.getTurret();
         
-        app.fill(0);
-        app.rect(-TURRET_WIDTH / 2, -TURRET_HEIGHT, TURRET_WIDTH, TURRET_HEIGHT); 
-        app.popMatrix();
-    }
+        app.pushMatrix(); 
+        app.translate((float)t.getX() * app.CELLSIZE, (float) t.getY() * app.CELLSIZE); 
     
+        app.rotate((float) Math.toRadians(t.getAngle())); 
+        
+        //Draw the new turret
+        app.fill(0);
+        app.rect(-t.TURRET_WIDTH / 2, -t.TURRET_HEIGHT, t.TURRET_WIDTH, t.TURRET_HEIGHT); 
+
+        float x = app.screenX(-t.TURRET_WIDTH / 2, -t.TURRET_HEIGHT);
+        float y = app.screenY(-t.TURRET_WIDTH / 2, -t.TURRET_HEIGHT);
+
+        t.setPosition((x+(t.TURRET_WIDTH/2))/App.CELLSIZE , y/App.CELLSIZE);
+        //System.out.println("Turret's new X is " + x + " and the new Y is " + y);
+        
+        app.popMatrix();
+
+        /* 
+        app.fill(255,0,255);
+        app.ellipse((float)t.getX() * App.CELLSIZE, (float)t.getY() * App.CELLSIZE, 5, 5);
+        */
+    }
 
     @Override
     public String toString() {
@@ -171,5 +251,4 @@ public class Tank implements Turret {
                 '}';
     }
 
-
-}
+} 
