@@ -117,7 +117,6 @@ public class Terrain {
                     microArrayExtended[i] = microArray[i];
                     a ++;
                 }
-
                 for (; a < microArrayExtended.length; a ++){
                     microArrayExtended[a] = microArray[microArray.length - 1];
                 }

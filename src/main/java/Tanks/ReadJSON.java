@@ -1,7 +1,9 @@
 package Tanks;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import processing.core.PImage;
 import processing.data.JSONArray;
@@ -50,7 +52,6 @@ public class ReadJSON {
         app.movingAvg = smoothedTerrainLine(app, app.foregroundColourRBG, charTiles);
         double[] centerValues = getCenterValues(app.movingAvg);
         app.movingAvgWithCELLSIZE = getMovingAverage(app.movingAvg);
-        System.out.print(app.movingAvgWithCELLSIZE[0]);
 
         //Set the trees if the txt file has 'em
         if (level.getString("trees") != null) setTrees(app, level, centerValues);
@@ -99,11 +100,32 @@ public class ReadJSON {
 
         return movingAvgWithCELLSIZE;
     }
+    
     public static void setTrees(App app, JSONObject level, double[] centerValues) {     
             String path = "src/main/resources/Tanks/" + level.getString("trees");
 
-            HashMap<Integer, Float> treePositions = app.newTreePositions(path, app.tiles, centerValues);
-            for (Map.Entry<Integer, Float> entry : treePositions.entrySet()) {
+            //HashMap sorted by Vertical (column FIXED), Horizontal
+            HashMap<Integer, Float> treeCoordinates = new HashMap<Integer, Float>();
+            Set<Integer> treeVertical = new HashSet<>();
+
+            for (int i = 0; i < app.tiles.length; i ++){
+                for (int j = 0; j < app.tiles[i].length; j ++){
+                    if (app.tiles[i][j].getType() == "tree"){
+                        //System.out.printf("There is a tree at row %d, column %d. %n", i, j);
+                        treeVertical.add(j);
+                    }
+                }
+            }
+
+            for (int i = 0; i < centerValues.length; i ++ ){
+                if (treeVertical.contains(i)){
+                    float yPositon = (float) (App.BOARD_HEIGHT - (centerValues[i] + 1));
+                    int xPosition = i ;
+                    treeCoordinates.put(xPosition, yPositon);
+                }
+            }
+
+            for (Map.Entry<Integer, Float> entry : treeCoordinates.entrySet()) {
                 Integer column = entry.getKey();
                 Float row = entry.getValue();
                 Tree tree = new Tree(row, column);
@@ -111,9 +133,12 @@ public class ReadJSON {
                 tree.setTreeImage(path);
                 app.trees.add(tree);
             }
-        }
+    }
+
 
     public static void initializePlayers(App app, char[][] charTiles) {
+
+        //Set Characters
             for (int i = 0; i < charTiles.length; i++) {
                 for (int j = 0; j < charTiles[i].length; j++) {
                     if (app.tiles[i][j].getType().equals("player")) {
@@ -123,6 +148,8 @@ public class ReadJSON {
                 }
             }
         }
+
+        
    
     public static void setPlayerColors(App app) {
         JSONObject playerColors = app.jsonData.getJSONObject("player_colours");
@@ -140,27 +167,45 @@ public class ReadJSON {
     }
 
     public static void updateTankPositionsAfterSmoothing(App app, double[] centerValues){
+        
            // Get the updated positions
-           app.tankPositions = app.newTankPositions(app.tiles, centerValues);
+            HashMap<Double, Double> tankCoordinates = new HashMap<Double, Double>();
+            Set<Double> tankVertical = new HashSet<>();
 
-           for (Map.Entry<Double, Double> tankPos : app.tankPositions.entrySet()){
-               Double x = tankPos.getKey();
-               Double y = tankPos.getValue(); 
-           }
-   
+            for (int i = 0; i < app.tiles.length; i ++){
+                for (int j = 0; j < app.tiles[i].length; j ++){
+                    if (app.tiles[i][j].getType() == "player"){
+                        tankVertical.add((double) j);
+                    }
+                }
+            }
+
+
+            for (int i = 0; i < centerValues.length; i ++ ){
+                if (tankVertical.contains((double) i)){
+                    double yPositon = (double) (App.HEIGHT - (centerValues[i] * App.CELLSIZE));
+                    double xPosition = (double) i * App.CELLSIZE;
+                    tankCoordinates.put(xPosition, yPositon);
+                }
+            }
+
            // Update every player's position with the new tank positions
            for (Map.Entry<Character, Tank> entry : app.players.entrySet()) {
                Character c = entry.getKey();
                Tank current_tank = entry.getValue(); 
                
-               Double before_x = current_tank.getRow() / app.CELLSIZE;
-               Double before_y = current_tank.getColumn() / app.CELLSIZE;
+
+               Double before_x = current_tank.getRow();
+               Double before_y = current_tank.getColumn();
+               
    
                Double new_y = 0.0;
-               if (app.tankPositions.containsKey(before_x)){
-                   new_y = app.tankPositions.get(before_x);
+               if (tankCoordinates.containsKey(before_x)){
+                   new_y = tankCoordinates.get(before_x);
                    current_tank.setPosition(new_y, before_x); // Update player's position
                }
+
+               //System.out.println("The new tank postion is at X " + current_tank.getColumn() + " Y " + current_tank.getRow());
            }
     }
 }

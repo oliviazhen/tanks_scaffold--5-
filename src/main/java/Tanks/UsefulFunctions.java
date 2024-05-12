@@ -14,6 +14,18 @@ public class UsefulFunctions {
         return int_colours;
     }
 
+    public static double multiplyPixelSize(double value){
+        return value * App.CELLSIZE;
+    }
+
+    public static int random(int min, int max){
+        int random_int = (int) Math.floor(Math.random() * (max - min + 1) + min);
+        return random_int;
+    }
+
+    public static void main(String[] args){
+        System.out.println(random(-35, 35));
+    }
     
     
 }

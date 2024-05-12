@@ -1,4 +1,5 @@
 package Tanks;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -9,6 +10,7 @@ public class Turret {
     public int angle;
     private double x;
     private double y;
+    private int power;
 
     public Turret(double defaultX, double defaultY){
         this.x = defaultX;
@@ -33,7 +35,6 @@ public class Turret {
         }
     }
 
-    //Note that these are not accounting for CELLSIZE
     public double getX(){
         return this.x;
     }
@@ -44,6 +45,22 @@ public class Turret {
 
     public int getAngle(){
         return this.angle;
+    }
+
+    public void changePower(int addOrSubtract){
+        int AMOUNT = 36;
+        if (addOrSubtract > 0){
+            if (this.power + AMOUNT > 100){
+                this.power = 100;
+            }
+            else this.power += AMOUNT;
+        }
+        else{
+            if (this.power - AMOUNT < 0){
+                this.power = 0;
+            }
+            else this.power -= AMOUNT;
+        }
     }
 
 }

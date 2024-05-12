@@ -1,5 +1,6 @@
 package Tanks;
 
+
 import java.util.*;
 
 import processing.core.PImage;
@@ -15,10 +16,12 @@ public class draw {
      * Calculates the moving average
      * Need to update fill with the foreground colour
      * @param movingAvg
-     * @return double[] which holds the X coordinates (relative to processing) for where the center of each 27 columns is
+     * @return HashMap with the X and Y coordinates of the line
      */
     public static void smoothLine(App app, int[] rgb, double[] movingAvgWithCELLSIZE) {
         app.stroke(rgb[0], rgb[1], rgb[2]);
+
+        HashMap<Float,Float> coordinates = new HashMap<Float, Float>();
 
         //Initialise a loop that iterates over each element of the movingAverage array of the terrain heights except for last
         for (int i = 0; i < movingAvgWithCELLSIZE.length - 1; i++) {
@@ -26,9 +29,14 @@ public class draw {
             float y1 = app.HEIGHT - (float) movingAvgWithCELLSIZE[i];// Starting y-coordinate
             float x2 = (i + 1); // Ending x-coordinate
             float y2 = app.HEIGHT - (float) movingAvgWithCELLSIZE[i + 1]; // Ending y-coordinate
+
+            coordinates.put(x1, y1);
+            coordinates.put(x2, y2);
     
             app.line(x1, y1, x2, y2);
         }
+
+        app.coordinates = coordinates;
     }
 
     /**
@@ -50,17 +58,6 @@ public class draw {
         }
     }
 
-    public static void pixel(App app, int x, int y, int[] rgb) {
-        // Set the stroke color using the RGB values
-        app.stroke(rgb[0], rgb[1], rgb[2]);
-        
-        // Calculate the y-coordinate for the top of the window
-        int topY = app.TOPBAR; // Assuming TOPBAR is the distance from the top of the window to the top of the line
-        
-        // Draw a line from the specified point to the top of the window
-        app.line(x, y, x, topY);
-    }
-
     public static void playerTurn(App app, Character currentPlayerKey){
         app.fill(0);
         app.textSize(15);
@@ -68,10 +65,10 @@ public class draw {
 
         app.fill(0);
         app.textSize(15);
-        app.text(currentPlayerKey, 65, 30);
+        app.text(currentPlayerKey, 60, 30);
 
         app.textSize(15);
-        app.text("'s turn ", 80, 30);
+        app.text("'s turn ", 70, 30);
 
     }
 
@@ -85,34 +82,51 @@ public class draw {
     }
 
     public static void playerFuel(App app, Tank tank){
+
+        PImage fuel = app.loadImage("src/main/resources/Tanks/fuel.png");
+        fuel.resize(25, 25);
+        app.image(fuel, 150, 10);
+
         app.fill(0);
         app.textSize(15);
         app.text(tank.getFuelAmount(), 180, 30);
     }
 
-    public static void healthBar(App app, Tank t){
+    public static void playerParachute(App app, Tank tank){
+
+        PImage parachute = app.loadImage("src/main/resources/Tanks/parachute.png"); 
+        parachute.resize(25, 25);
+        app.image(parachute, 150, 40);
+
+        app.fill(0);
         app.textSize(15);
-        float fullPower = 200;
+        app.text(tank.getParachutes(), 180, 60);
+        
+    }
 
-        float currentPower = (2/50)*fullPower;
-    
-        //Rectangle
-        //For the smaller rectangle, the power determines its length which means we need a ratio.
+    public static void healthBar(App app, Tank t){
+        app.noStroke();
+        int MAGNITUDE = 2;
 
+        app.textSize(15);
+
+        //Out of 100
+        float currentPower = Math.round(t.getPower());
+
+        //Create the rectangle
         app.text("Health: ", 280, 30);
         app.fill(t.getColours()[0],t.getColours()[1], t.getColours()[2]);
-        app.rect(350, 10, fullPower,25);
+        app.rect(350, 10, 100 * MAGNITUDE,25);
 
-        app.fill(2);
-        app.rect(350, 10, currentPower ,25);
-
+        app.fill(0);
+        app.rect(350, 10, currentPower * MAGNITUDE ,25);
 
         //Black text
         app.fill(0);
         app.text(t.getHealth(), 550, 30);
 
         app.text("Power: ", 280, 60);
-        app.text(t.getPower(), 350, 60);
+        app.text((int)currentPower, 350, 60);
 
     }
 
@@ -159,23 +173,40 @@ public class draw {
         app.image(background, 0, 0);
     }
 
+    public static void wind(App app, Wind wind){
+
+        if (wind.getWindForce() < 0){
+            app.wind = app.loadImage("src/main/resources/Tanks/wind-1.png");      
+        }
+        else if (wind.getWindForce() > 0){
+            app.wind = app.loadImage("src/main/resources/Tanks/wind.png");
+        }
+    
+        if (app.wind != null){
+            app.wind.resize(50, 50);
+            app.image(app.wind, 730, 5);
+            app.textSize(15);
+            app.fill(0);
+            app.text(Integer.toString(wind.getWindForce()), 790,35);
+        }
+
+    }
+
+    public static void changeWind(App app){
+
+    }
+
     
     public static void level(App app){
-
 
         background(app, app.background);
         smoothLine(app, app.foregroundColourRBG, app.movingAvgWithCELLSIZE);
         floor(app, app.foregroundColourRBG, app.movingAvgWithCELLSIZE);
         trees(app, app.trees);
 
-        PImage wind = app.loadImage("src/main/resources/Tanks/wind.png");
-        PImage fuel = app.loadImage("src/main/resources/Tanks/fuel.png");
-        wind.resize(50, 50);
-        fuel.resize(25, 25);
-        app.image(wind, 730, 5);
-        app.image(fuel, 150, 10);
         playerTurn(app, app.currentPlayerKey);
         playerFuel(app, app.current_player);
+        playerParachute(app, app.current_player);
         healthBar(app,app.current_player);
         //arrow(app, app.current_player);
     }

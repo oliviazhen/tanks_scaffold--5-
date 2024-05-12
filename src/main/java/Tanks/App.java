@@ -1,12 +1,19 @@
 package Tanks;
 
 import org.checkerframework.checker.units.qual.A;
+
+import com.jogamp.opengl.util.packrect.Rect;
+
 import processing.core.PApplet;
 import processing.core.PImage;
 import processing.data.JSONArray;
 import processing.data.JSONObject;
 import processing.event.KeyEvent;
 import processing.event.MouseEvent;
+
+import java.awt.*;
+import java.awt.geom.AffineTransform;
+import java.awt.image.BufferedImage;
 
 import java.io.*;
 import java.util.*;
@@ -22,14 +29,13 @@ public class App extends PApplet{
     public static int WIDTH = 864; //CELLSIZE*BOARD_WIDTH;
     public static int HEIGHT = 640; //BOARD_HEIGHT*CELLSIZE+TOPBAR;
 
-    //BOARD represents what board[][] in the checkers game would!
     public static final int BOARD_WIDTH = WIDTH/CELLSIZE;
     public static final int BOARD_HEIGHT = 20;
 
     int x = 0;
     int y = 200;
 
-    public static final int INITIAL_PARACHUTES = 1;
+    public static final int INITIAL_PARACHUTES = 3;
 
     public static final int FPS = 30;
 
@@ -40,6 +46,11 @@ public class App extends PApplet{
     public int[] foregroundColourRBG;
     double[] movingAvg;
     double[] movingAvgWithCELLSIZE;
+    public String configPath;
+
+    //All draw vairables
+    HashMap<Float,Float> coordinates;
+    PImage wind;
 
     //create an array to store the terrain based on the levels
     Tile[][] tiles;
@@ -48,12 +59,26 @@ public class App extends PApplet{
     Set<Tree> trees = new HashSet<>();
     Character currentPlayerKey;
     Tank current_player;
+    boolean waitingForProjectile = false;
     ArrayList<Projectile> p_ls;
     boolean left, right, up, down, w, s, space;
+    Wind windObj;
+
+    float prevTime;
+    float elapsedTime;
+
+    //Tank movement
+    int dx = 0;
+    int move;
+
+    //Explosions
+    Projectile bullet;
 
 
     public App() {
+        this.configPath = "config.json";
     }
+
 
     /**
      * Initialise the setting of the window size.
@@ -68,140 +93,95 @@ public class App extends PApplet{
      */
 	@Override
     public void setup() {
-        frameRate(FPS);        
-        jsonData = loadJSONObject("config.json");
+        frameRate(FPS);  
+   
+        jsonData = loadJSONObject(configPath);
         ReadJSON.loadLevel(this, 2);
-
-        if (players.size() == 0){
-            System.out.println("There are no players in the game");
-        }
 
         currentPlayerKey = players.keySet().iterator().next();
         current_player = players.get(currentPlayerKey);
 
         draw.level(this);
 
-        //Print testing to ensure intitialisation is not null
-        /* 
-        System.out.println(background);
-        System.out.println(jsonData);
-        System.out.println(smoothedTerrainLine.length);
-        System.out.println(tiles.length);
-        System.out.println(players.entrySet());
-        System.out.println(tankPositions);
-        System.out.println(trees);
-        */
-    }
-
-    /**
-     * Calculates the new positions of the trees according the the terrain heights
-     * @param treeImagePath
-     * @param tiles
-     * @param smoothedValues
-     * @return HashMap with each new position of the tree
-     */
-    public HashMap<Integer, Float> newTreePositions(String treeImagePath, Tile[][] tiles, double[] smoothedValues){
-        PImage tree = loadImage(treeImagePath);
-
-        //HashMap sorted by Vertical (column FIXED), Horizontal
-        HashMap<Integer, Float> treeCoordinates = new HashMap<Integer, Float>();
-        Set<Integer> treeVertical = new HashSet<>();
-
-        for (int i = 0; i < tiles.length; i ++){
-            for (int j = 0; j < tiles[i].length; j ++){
-                if (tiles[i][j].getType() == "tree"){
-                    //System.out.printf("There is a tree at row %d, column %d. %n", i, j);
-                    treeVertical.add(j);
-                }
-            }
-        }
-
-        for (int i = 0; i < smoothedValues.length; i ++ ){
-            if (treeVertical.contains(i)){
-                //Plus one due to layering?
-                float yPositon = (float) (BOARD_HEIGHT - (smoothedValues[i] + 1));
-                int xPosition = i;
-                treeCoordinates.put(xPosition, yPositon);
-            }
-        }
-        return treeCoordinates;
-
-    }
-
-    public HashMap<Double, Double> newTankPositions(Tile[][] tiles, double[] smoothedValues){
-
-        //HashMap sorted by Vertical (column FIXED), Horizontal
-        HashMap<Double, Double> tankCoordinates = new HashMap<Double, Double>();
-        Set<Double> tankVertical = new HashSet<>();
-
-        for (int i = 0; i < tiles.length; i ++){
-            for (int j = 0; j < tiles[i].length; j ++){
-                if (tiles[i][j].getType() == "player"){
-                    //System.out.printf("Before smoothing: The tank is at row %d, column %d. %n", i, j);
-                    tankVertical.add((double) j);
-                }
-            }
-        }
-
-        for (int i = 0; i < smoothedValues.length; i ++ ){
-            if (tankVertical.contains((double) i)){
-                double yPositon = (double) (BOARD_HEIGHT - (smoothedValues[i]));
-                double xPosition = (double) i;
-                tankCoordinates.put(xPosition, yPositon);
-                //System.out.println("After smoothing: The tank should be at column " + xPosition + ", row " + yPositon);
-            }
-        }
-
-        return tankCoordinates;
-
+        //Create a wind object
+        this.windObj = new Wind();
+        draw.wind(this, windObj);
     }
 
     public void moveToNextPlayer() {
         Object[] keys = players.keySet().toArray();
-
+    
+        // Find the index of the current player in the array of keys
         int currentIndex = -1;
         for (int i = 0; i < keys.length; i++) {
-            if ((char) keys[i] == currentPlayerKey) {
+            if (currentPlayerKey == (char) keys[i]) {
                 currentIndex = i;
                 break;
             }
         }
+        // Handle the case where the current player is not found
+        if (currentIndex == -1) {
+            System.out.println("Current player not found.");
+            return;
+        }
+    
+        // Calculate the index of the next player
         int nextIndex = (currentIndex + 1) % keys.length;
+    
+        // Update the current player to the next player
         currentPlayerKey = (char) keys[nextIndex];
         current_player = players.get(currentPlayerKey);
-    }
+    }    
 
     /**
      * Receive key pressed signal from the keyboard.
      */
 	@Override
     public void keyPressed(KeyEvent event){
+
+        int key = event.getKeyCode();
+
         //Tank movement
-        if (keyCode == LEFT) {
+        if (key == 37) {
             left = true;
+            move = 1;
+            dx += 1;
         }
-        if (keyCode == RIGHT) {
+        else if (key == 39) {
             right = true;
+            move = 1;
+            dx += 1;
         }
         //Turret Movement
-        if (keyCode == UP) {
+        else if (key == 38) {
             up = true;
+            move += 1;
+            dx += 1;
         }
-        if (keyCode == DOWN) {
+        else if (key == 40) {
             down = true;
+            move += 1;
+            dx += 1;
         }
-        if (keyCode == ' ') {
-            space = true;
-  
-        }
+        
+
         //Turret Power
         if (keyCode == 'W'){
-            System.out.println("w registers");
             w = true;
+            move += 1;
+            //dx += 1;
         }
         if (keyCode == 'S'){
-            System.out.println("S registers");
             s = true;
+            move += 1;
+            //dx += 1;
+        }
+
+        //Projectile
+        if (keyCode == ' ') {
+            space = true;
+            current_player.addProjectile(current_player.getTurret());
+            p_ls = current_player.getProjectiles();
         }
         
     }
@@ -213,31 +193,44 @@ public class App extends PApplet{
     public void keyReleased(){
 
         //Tank Movement
-        if (keyCode == LEFT ) {
+        if (keyCode == LEFT) {
             left = false;
+            move = 0;
         }
         if (keyCode == RIGHT) {
             right = false;
+            move = 0;
         }
 
         //Turret Movement
         if (keyCode == UP) {
             up = false;
+            move = 0;
         }
         if (keyCode == DOWN) {
             down = false;
+            move = 0;
+
         }
 
         if (keyCode == ' ') {
             space = false;
+            if (waitingForProjectile) {
+            } else {
+                // If not waiting for projectile, switch players
+                moveToNextPlayer();
+                windObj.changeWindForce();
+            }
         }
 
         //Turret Power
-        if (keyCode == 'w'){
+        if (keyCode == 'W'){
             w = false;
+            move = 0;
         }
-        if (keyCode == 's'){
+        if (keyCode == 'S'){
             s = false;
+            move = 0;
         }
 
     }
@@ -251,39 +244,102 @@ public class App extends PApplet{
     public void mouseReleased(MouseEvent e) {
 
     }
+
+    public float timer(float prevTime){
+        float deltaTime =  (float) ((millis() - prevTime) / 1000.0); // Convert milliseconds to seconds
+        prevTime = millis(); // Update prevTime for the next frame
+
+        return deltaTime;
+    }
+
+    public int checkDamage(Projectile bullet){
+
+        int damageAmount = 0;
+        // Loop through all the tanks and check if any are affected by the explosion
+        for (Map.Entry<Character, Tank> entry : players.entrySet()){
+            Character tankIdentifier = entry.getKey();
+            Tank tank = entry.getValue();
+    
+            double distance = Math.sqrt(Math.pow(tank.getColumn() - bullet.getX(), 2) + Math.pow(tank.getRow() - bullet.getY(), 2));
+
+            // Check if the tank is within the explosion radius
+            if (distance <= bullet.radius){
+                double damagePercentage = 1 - (distance / bullet.radius);
+                damageAmount = (int) (tank.getHealth() * (1.0 - (distance / bullet.radius)));
+
+                tank.setHealth(damageAmount);
+
+                System.out.println(tankIdentifier + " takes " + damagePercentage + " percent damage from the explosion. Remaining health: " + tank.getHealth());
+    
+            }
+        }
+
+        return damageAmount;
+    }
+    
     
     /** 
      * Draw all elements in the game by current frame.
+     * At 30 FPS, Every second we flip through 30 frames
      */
     @Override
     public void draw() {
-
+        /* */
         draw.level(this);
-     
-        for (Map.Entry<Character, Tank> player: players.entrySet()){
+        draw.wind(this, windObj);
+    
+        // Concerning all the players
+        for (Map.Entry<Character, Tank> player : players.entrySet()) {
             player.getValue().display(this);
         }
-        
-        current_player.update(this); 
-    
-        // If the space is activated, let the projectile move out of frame before we switch the player
-        p_ls = current_player.getProjectiles();
 
-        if (!p_ls.isEmpty()){
-            Projectile bullet = p_ls.get(0);
+        //Concerning the current player; Move 60 px/second
+        if(move > 0){
+ 
+            current_player.move(this, dx);
+            current_player.changePower(this, dx);
+            current_player.moveTurret(this, dx);
+
+            dx += 1;
+            move += 1;
+
+            if (move == 60){
+                move = 0;
+            } 
+        }
+
+        fill(0);
+
+        //Concerning the projectile
+        p_ls = current_player.getProjectiles();    
+        if (!p_ls.isEmpty()) {
+            waitingForProjectile = true;
+            bullet = p_ls.get(0);
+    
+            if (bullet.checkRemove(this)) 
+            {
+                if (bullet.willExplode){
+                    //System.out.println("The draw processes the explosion");
+                    checkDamage(bullet);
+                }
+
+                p_ls.clear();
+                waitingForProjectile = false;
+
+                if (!space){
+                    moveToNextPlayer();
+                    windObj.changeWindForce();
+                }
+            }
+
+            bullet.setWind(windObj);
             bullet.display(this);
             bullet.move();
 
-            if (bullet.checkRemove()) {
-                space = false;
-                moveToNextPlayer();
-            }
         }
-        // Display HUD
-    
-        // Display scoreboard
         draw.scoreboard(this, players);
     }
+    
     
     public static void main(String[] args) {
         PApplet.main("Tanks.App");

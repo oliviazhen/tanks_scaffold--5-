@@ -20,17 +20,18 @@ public class Tank{
 
     private int fuel = 250;
     private int health = 100;
-    private int power = 50;
+    private float power = 50;
     private int turretPower = 100;
     private int score = 0;
+    private int parachute = App.INITIAL_PARACHUTES;
 
-    private int speed = 60;
+    private int speed = 30;
 
     private Turret turret = new Turret(0,0);
     private ArrayList<Projectile> projectiles = new ArrayList<Projectile>();
 
+
     public Tank(double row, double column) {
-        // The parameters already account for CELLSIZE
         this.row = row;
         this.column = column;
     }
@@ -41,11 +42,15 @@ public class Tank{
     public int getScore() {
         return score;
     }
-    public int getPower(){
+    public float getPower(){
         return power;
     }
     public int getHealth(){
         return health;
+    }
+
+    public int getParachutes(){
+        return parachute;
     }
 
     public double getColumn() {
@@ -62,28 +67,25 @@ public class Tank{
     }
 
     public void setFuelAmount(int amount){
-        this.fuel -= fuel;
+        this.fuel -= amount;
     }
 
-    public void changeTurretPower(int addOrSubtract){
-        int AMOUNT = 36;
-        if (addOrSubtract > 0){
-            if (this.turretPower + AMOUNT > 100){
-                this.turretPower = 100;
-            }
-            else this.turretPower += AMOUNT;
+    public void setParachutes(int amount){
+        this.parachute += amount;
+    }
+
+    public void setHealth(int amount){
+
+        if (amount > 60){
+            amount = 60;
         }
-        else{
-            if (this.turretPower - AMOUNT < 0){
-                this.turretPower = 0;
-            }
-            else this.turretPower -= AMOUNT;
-        }
+
+        this.health -= amount;
     }
     
     public void setPosition(double newRow, double newCol){
         this.row = newRow;
-        this.column = newCol;
+        this.column = newCol;   
     }
 
     public void setColour(int[] colours){
@@ -91,60 +93,26 @@ public class Tank{
     }
 
     public void setSecondRectangle(double row, double col){
-        double topRectX = col * App.CELLSIZE + (TANK_WIDTH - TOP_TANK_WIDTH) / 2; 
-        double topRectY = row * App.CELLSIZE - TOP_TANK_HEIGHT;
+        double topRectX = col  + (TANK_WIDTH - TOP_TANK_WIDTH) / 2; 
+        double topRectY = row - TOP_TANK_HEIGHT;
 
-        this.topRectX = topRectX / App.CELLSIZE;
-        this.topRectY = topRectY / App.CELLSIZE;
+        this.topRectX = topRectX ;
+        this.topRectY = topRectY;
     }  
-
-    public void rotateTurret(double angle) {
-        topRectX = topRectX * App.CELLSIZE;
-        topRectY = topRectY * App.CELLSIZE;
-
-        if (angle < -90){
-            angle = -90;
-        }
-        if (angle > 90){
-            angle = 90;
-        }
-
-        // Calculate the new position of the turret based on the angle
-        double radians = Math.toRadians(angle);
-
-        double xOffset = Math.cos(radians) * (TOP_TANK_WIDTH / 2);
-        double yOffset = Math.sin(radians) * (TOP_TANK_WIDTH / 2);
-        double newTurretX = topRectX + xOffset;
-        double newTurretY = topRectY - yOffset;
-    
-        // Update the turret position
-        this.turret.setPosition(newTurretX / App.CELLSIZE, newTurretY / App.CELLSIZE);
-    }    
     
     public void setTurret(double topRectX, double topRectY){
 
-        topRectX = topRectX * App.CELLSIZE;
-        topRectY = topRectY * App.CELLSIZE;
         double turretX = topRectX + (TOP_TANK_WIDTH) / 2;
         double turretY = topRectY;
 
-        //Create a new turret
-        this.turret.setPosition(turretX / App.CELLSIZE, turretY / App.CELLSIZE);
+        this.turret.setPosition(turretX, turretY);
     }
 
     public void addProjectile(Turret t) {
-        // Calculate the position of the projectile based on turret position and angle
-        double projectileX = t.getX() * App.CELLSIZE;
-        double projectileY = t.getY() * App.CELLSIZE;
+        Projectile projectile = new Projectile(t, (float) t.getX(), (float) t.getY(), t.getAngle());
 
-        // Create a new projectile and add it to the list
-        Projectile projectile = new Projectile((float) projectileX, (float) projectileY, t.getAngle());
-
-        // Add an extra layer of control so that we only have one projectile in the array
-        //this.projectiles.add(projectile);
         if (projectiles.isEmpty()){
             this.projectiles.add(projectile);
-            
         }
         else{
             projectiles = new ArrayList<Projectile>();
@@ -163,59 +131,98 @@ public class Tank{
         return null;
     }
 
-    public void update(App app) {
+    public void rotateTurret(double angle) {
+        if (angle < -90){
+            angle = -90;
+        }
+        if (angle > 90){
+            angle = 90;
+        }
+        double radians = Math.toRadians(angle);
 
-        if (app.left) {
-            setPosition(row, ((column * App.CELLSIZE) + 60) / App.CELLSIZE);
+        double xOffset = Math.cos(radians) * (TOP_TANK_WIDTH / 2);
+        double yOffset = Math.sin(radians) * (TOP_TANK_WIDTH / 2);
+        double newTurretX = topRectX + xOffset;
+        double newTurretY = topRectY - yOffset;
+    
+        // Update the turret position
+        this.turret.setPosition(newTurretX, newTurretY);
+    }    
+
+
+    public void setPower(float power){
+        int maxPower = this.getHealth();
+        float newPower = this.getPower() + power;
+        
+        // Bound Checking
+        if (newPower <= 0) {
+            this.power = 0;
+        } else if (newPower > maxPower) {
+            this.power = maxPower;
+        } else {
+            this.power = newPower;
         }
     
+        //System.out.println("The tank now has " + this.getPower() + " power");
+    }
+
+    public void move(App app, int dx) {
+
+        if (app.left) { 
+            double newCol = column - dx; // Move left
+
+            if ((newCol > 864)||(newCol < 0)) newCol = App.WIDTH;
+            double newRow = app.HEIGHT - (double) app.movingAvgWithCELLSIZE[(int) newCol];
+            setPosition(newRow, newCol);
+        }
         if (app.right) {
-            setPosition(row, ((column * App.CELLSIZE) + 60) / App.CELLSIZE);
+            double newCol = column + dx;
+            if ((newCol > 864)||(newCol < 0)) newCol = 0;
+            double newRow = app.HEIGHT - (double) app.movingAvgWithCELLSIZE[(int) newCol];
+            setPosition(newRow, newCol);
         }
-    
+    }
+
+    public void moveTurret(App app, int dx){
         if (app.up) {
             // Rotate turret left
-            int newAngle = this.turret.getAngle() - 5;
+            int newAngle = this.turret.getAngle() - dx;
             this.turret.setAngle(newAngle);
             rotateTurret(newAngle);
         }
         if (app.down) {
             // Rotate turret right
-            int newAngle = this.turret.getAngle() + 5;
+            int newAngle = this.turret.getAngle() + dx;
             this.turret.setAngle(newAngle);
             rotateTurret(newAngle);
         }
+    }
+
+    public void changePower(App app, int dx){
         if (app.w) {
-            changeTurretPower(2);
+            this.setPower(((float) 36/60) * dx); 
         }
         if (app.s) {
-            changeTurretPower(-1);
-        }
-        if (app.space) {
-            if ((this.turret.getX() == 0) && (this.turret.getY() == 0)) {
-                System.out.println("The turret is not in the correct position.");
-            } else {
-                this.addProjectile(this.turret);
-            }
+            this.setPower(((float) -36/60) * dx); 
         }
     }
     
     public void display(App app) {
-        // First rectangle
+
         app.fill(colours[0], colours[1], colours[2]);
         app.noStroke(); 
-        app.rect((float)column * app.CELLSIZE, (float)row * app.CELLSIZE, TANK_WIDTH, TANK_HEIGHT);
+        app.rect((float)column, (float)row, TANK_WIDTH, TANK_HEIGHT);
         
         // Second rectangle has to be placed on top of the first rectangle.
         setSecondRectangle(row, column);
-        app.rect((float)topRectX * app.CELLSIZE, (float)topRectY * app.CELLSIZE, TOP_TANK_WIDTH, TOP_TANK_HEIGHT);
+        app.rect((float)topRectX , (float)topRectY , TOP_TANK_WIDTH, TOP_TANK_HEIGHT);
     
         // Draw the turret
         setTurret(topRectX, topRectY);
         Turret t = this.getTurret();
         
         app.pushMatrix(); 
-        app.translate((float)t.getX() * app.CELLSIZE, (float) t.getY() * app.CELLSIZE); 
+        app.translate((float)t.getX(), (float) t.getY()); 
     
         app.rotate((float) Math.toRadians(t.getAngle())); 
         
@@ -226,15 +233,10 @@ public class Tank{
         float x = app.screenX(-t.TURRET_WIDTH / 2, -t.TURRET_HEIGHT);
         float y = app.screenY(-t.TURRET_WIDTH / 2, -t.TURRET_HEIGHT);
 
-        t.setPosition((x+(t.TURRET_WIDTH/2))/App.CELLSIZE , y/App.CELLSIZE);
+        t.setPosition((x+(t.TURRET_WIDTH/2)), y);
         //System.out.println("Turret's new X is " + x + " and the new Y is " + y);
         
         app.popMatrix();
-
-        /* 
-        app.fill(255,0,255);
-        app.ellipse((float)t.getX() * App.CELLSIZE, (float)t.getY() * App.CELLSIZE, 5, 5);
-        */
     }
 
     @Override
