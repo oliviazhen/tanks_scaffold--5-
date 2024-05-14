@@ -7,16 +7,23 @@ public class Projectile{
     int speed = 60; 
 
     private Turret fromT;
-    private float x;
-    private float y;
-    private double angle;
+    private int x;
+    private int y;
+    private float angle;
     private Wind wind;
 
     public boolean willExplode;
     public int[] explodeCoordinate;
 
-
-    public Projectile(Turret fromT, float x, float y, int angle){
+    /**
+     * Constructor takes in a starting turret object in which it belonged to
+     * It also considers a position and an angle in which it is shooting at.
+     * @param fromT
+     * @param x
+     * @param y
+     * @param angle
+     */
+    public Projectile(Turret fromT, int x, int y, float angle){
         this.angle = angle;
         this.x = x;
         this.y = y;
@@ -24,30 +31,49 @@ public class Projectile{
 
     }
 
-    public double getX(){
+    /**
+     * Getter for the x (column)
+     * @return int
+     */
+    public int getX(){
         return this.x;
     }
 
-    public double getY(){
+    /**
+     * Getter for the y (row)
+     * @return 
+     */
+    public int getY(){
         return this.y;
     }
 
-    public void setX(float x){
+    /**
+     * Setter for x (row)
+     * @param x as an int
+     */
+    public void setX(int x){
         this.x = x;
     }
 
-    public void setY(float y){
+    /**
+     * Setter for y (column)
+     * @param x as an int
+     */
+    public void setY(int y){
         this.y = y;
     }
 
+    /**
+     * Setter for wind
+     * @param wind as a wind object
+     */
     public void setWind(Wind wind){
         this.wind = wind;
     }
-
-    public void hitTarget(){
-
-    }
-
+    /**
+     * Graphical display separated into explosion and non-explosion picture
+     * @param app
+     */
     public void display(App app) {
         if (willExplode) {
             int[] colors = {app.color(255, 0, 0), app.color(255, 165, 0), app.color(255, 255, 0)};
@@ -71,6 +97,9 @@ public class Projectile{
         }
     }
 
+    /**
+     * Move the projectile by shifting X and Y
+     */
     public void move(){
 
         //Check for wind
@@ -101,6 +130,11 @@ public class Projectile{
         }
     }
 
+    /**
+     * Check the projectile to make sure new movement is not out of bounds or hitting the terrain.
+     * @param app
+     * @return
+     */
     public boolean checkRemove(App app) {
        // System.out.println("The projectile path at X: " + this.x + " and Y: " + this.y);
         if (this.x < 0 || this.y < 0 || this.x > 864 || this.y > 640) {

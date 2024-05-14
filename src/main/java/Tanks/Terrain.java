@@ -1,6 +1,5 @@
 package Tanks;
 
-import java.util.Arrays;
 import java.util.ArrayList;
 
 public class Terrain {
@@ -10,9 +9,7 @@ public class Terrain {
      * @param tiles
      * @return int[]
      */
-      
     public static int[] heightTerrainElement(Tile[][] tiles){
-        
         //We have a new height for every column
         int total_cols = tiles[0].length;
         int[] height = new int[total_cols];
@@ -25,28 +22,18 @@ public class Terrain {
 
                 Tile element = tiles[row][col];
                 if (element.getType() == "floor"){
-
                     height[col] = total_rows - row;
-                    row = total_rows;
-                    
+                    row = total_rows;         
                 }
         }
     }
-
-    //Print test
-    /*
-        for (int i = 0; i < heights.length; i ++){
-            System.out.printf("The height of col %d is %d", i, heights[i]);
-            System.out.println();
-        }
-     */
-    
     return height;
 }
 
     /**
      * Calculate the intial 32-pixel array with each height of the tile.
      * E.g The left most tile of level1.txt has height of 19 so create a [19] * 32 array.
+     * Data type is in double for precision
      * @param windowLength
      * @param heights
      * @param heightIndex
@@ -65,8 +52,9 @@ public class Terrain {
     }
 
     /**
+     * Nested_heights represents a row of 32 elements for each height; e.g [7.0, 7.0, 7.0...] and then the next column is [9.0, 9.0...] onwards
+     * Data type is in double for precision
      * @param heights
-     * nested_heights represents a row of 32 elements for each height; e.g [7.0, 7.0, 7.0...] and then the next column is [9.0, 9.0...] onwards
      * @return The full 28 x 32 for each pixel, which combines the 2D nested_heights into a 1D array.
      */
     public static double[] getMicroscopicArray(int[] heights){
@@ -87,24 +75,16 @@ public class Terrain {
                 fullArray[index++] = curr_element[j];
             }
         }
-    
-        // Insert print testing here    
-        /* 
-        for (double eachExcrutiatingPixel: fullArray){
-            System.out.print(eachExcrutiatingPixel + " ");
-        }
-        */
         return fullArray;
-
     }
 
     /**
-     * 
+     * Calculates the movingAverage
+     * Data type is in double for precision
      * @param microArray
      * @param windowSize
-     * @return Moving average double array; Size of the array decreases by (# - 32 + 1) at every turn
+     * @return Moving average array; Size of the array decreases by (# - 32 + 1) at every turn
      */
-    
     public static double[] movingAverage(double[] microArray, int windowSize) {
 
         //Make sure microArray is of 896 values
@@ -149,40 +129,7 @@ public class Terrain {
         for (int i = 0; i < result.size(); i++) {
             resultArray[i] = result.get(i);
         }
-    
-        //Print testing
-        /* 
-        for (double avg : resultArray) {
-            System.out.print(avg + " ");
-        }
-        */
-        
-        //System.out.println("The size of the averages array is " + resultArray.length);
-    
         return resultArray;
     }
-
-    /* 
-    public static void main(String[] args){
-
-        char[][] arr = ReadFile.loadArray("level1.txt");
-
-        Tile[][] tiles = ReadFile.arrayToTiles(arr, "255,255,255", "src/main/resources/Tanks/tree1.png");
-
-        //Print out the heights
-        int[] heights = Terrain.heightTerrainElement(tiles);
-
-        //MicroArray
-        double[] micro = Terrain.getMicroscopicArray(heights);
-        double[] movingAvg = Terrain.movingAverage(micro, 32);
-        double[] movingAvgAgain = Terrain.movingAverage(movingAvg, 32);
-        
-        for(double microPixel: movingAvgAgain){
-            System.out.print(microPixel + " ");
-        }
-        
-    }
-    */
-
     
 }

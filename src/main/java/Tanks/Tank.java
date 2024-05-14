@@ -8,108 +8,202 @@ public class Tank{
 
     private int[] colours = new int[3];
 
-    private int TANK_WIDTH = 30;
-    private int TANK_HEIGHT = 8;
-    private int TOP_TANK_WIDTH = 20;
-    private int TOP_TANK_HEIGHT = 8;
+    protected int TANK_WIDTH = 30;
+    protected int TANK_HEIGHT = 8;
+    protected int TOP_TANK_WIDTH = 20;
+    protected int TOP_TANK_HEIGHT = 8;
 
-    private double row; // Y coordinate without accounting for cellsize
-    private double column; // X coordinate without accounting for cellsize
-    private double topRectX;
-    private double topRectY;
+    protected int row; // Y coordinate 
+    protected int column; // X coordinate 
+    protected int topRectX;
+    protected int topRectY;
 
     private int fuel = 250;
     private int health = 100;
-    private float power = 50;
-    private int turretPower = 100;
+    protected float power = 50;
     private int score = 0;
     private int parachute = App.INITIAL_PARACHUTES;
 
-    private int speed = 30;
+    private int speed = 60;
 
-    private Turret turret = new Turret(0,0);
     private ArrayList<Projectile> projectiles = new ArrayList<Projectile>();
-
-
-    public Tank(double row, double column) {
+    public Turret turret = new Turret(0, 0);
+    /**
+     * Constructor accepting a row and column relating to Y and X respectively.
+     * @param row
+     * @param column
+     */
+    public Tank(int row, int column) {
         this.row = row;
         this.column = column;
     }
 
-    public double getRow() {
-        return row;
-    }
-    public int getScore() {
-        return score;
-    }
-    public float getPower(){
-        return power;
-    }
-    public int getHealth(){
-        return health;
-    }
-
-    public int getParachutes(){
-        return parachute;
-    }
-
-    public double getColumn() {
-        return column;
-    }
-
+    /**
+     * Getter for int[] of colours as the RGB value
+     * @return int[] of colours
+     */
     public int[] getColours(){
         return this.colours;
     }
 
+    /**
+     * Getter for Row
+     * @return int 
+     */
+    public int getRow() {
+        return row;
+    }
+
+    /**
+     * Getter for Column
+     * @return int 
+     */
+    public int getColumn() {
+        return column;
+    }
+
+    /**
+     * Getter for Score
+     * @return int 
+     */
+    public int getScore() {
+        return score;
+    }
+
+    /**
+     * Getter for Power. Design choice to display power to the decimal for easy rounding.
+     * @return float 
+     */
+    public float getPower(){
+        return power;
+    }
+
+    /**
+     * Getter for Speed
+     * @return int 
+     */
+    public int getSpeed(){
+        return speed;
+    }
+
+    /**
+     * Getter for Health
+     * @return int 
+     */
+    public int getHealth(){
+        return health;
+    }
+
+    /**
+     * Getter for Parachute
+     * @return int 
+     */
+    public int getParachutes(){
+        return parachute;
+    }
+
+     /**
+     * Getter for Fuel
+     * @return int 
+     */
     public int getFuelAmount(){
         //System.out.println("The new fuel amount is " + this.fuel);
         return this.fuel;
     }
 
-    public void setFuelAmount(int amount){
-        this.fuel -= amount;
-    }
-
-    public void setParachutes(int amount){
-        this.parachute += amount;
-    }
-
-    public void setHealth(int amount){
-
-        if (amount > 60){
-            amount = 60;
-        }
-
-        this.health -= amount;
-    }
-    
-    public void setPosition(double newRow, double newCol){
+    /**
+     * Setter for both row and column
+     * @param newRow
+     * @param newCol
+     */
+    public void setPosition(int newRow, int newCol){
         this.row = newRow;
         this.column = newCol;   
     }
 
+     /**
+     * Setter for Fuel.
+     * @return int 
+     */
+    public void setFuelAmount(int amount){
+        this.fuel = amount;
+    }
+
+     /**
+     * Setter for parachutes
+     * @return int 
+     */
+    public void setParachutes(int amount){
+        if (!(amount > 3 || amount < 0)) this.parachute = amount;
+    }
+
+    /**
+     * Setter for health
+     * @param amount
+     */
+    public void setHealth(int amount){
+        if (!(amount < 0 || amount > 60)) this.health = amount;
+    }
+    /**
+     * Setter for the colours
+     * @param colours
+     */
     public void setColour(int[] colours){
         this.colours = colours;
     }
 
-    public void setSecondRectangle(double row, double col){
-        double topRectX = col  + (TANK_WIDTH - TOP_TANK_WIDTH) / 2; 
-        double topRectY = row - TOP_TANK_HEIGHT;
+    /**
+     * Setter for the score
+     * @param score
+     */
+    public void setScore(int score){
+        if (!(score < 0)){
+            this.score += score;
+        }
+    }
+
+    /**
+     * Set the second rectangle on top's coordinates
+     * @param row
+     * @param col
+     */
+    public void setSecondRectangle(int row, int col){
+        int topRectX = col  + (TANK_WIDTH - TOP_TANK_WIDTH) / 2; 
+        int topRectY = row - TOP_TANK_HEIGHT;
 
         this.topRectX = topRectX ;
         this.topRectY = topRectY;
     }  
     
-    public void setTurret(double topRectX, double topRectY){
-
-        double turretX = topRectX + (TOP_TANK_WIDTH) / 2;
-        double turretY = topRectY;
+    /**
+     * Set the turret's measurements by accessing the second rectangle.
+     * @param topRectX
+     * @param topRectY
+     */
+    public void setTurret(int topRectX, int topRectY){
+        int turretX = topRectX + (TOP_TANK_WIDTH) / 2;
+        int turretY = topRectY;
 
         this.turret.setPosition(turretX, turretY);
     }
 
+     /**
+     * Get the turret. Note that we must set the turret before we get it.
+     * @return Turret object corresponding to the tank
+     */
+    public Turret getTurret(){
+        if (this.turret != null){
+            return this.turret;
+        }
+        return null;
+    }
+
+    /**
+     * Add a new projectile to the turret
+     * @param t
+     */
     public void addProjectile(Turret t) {
-        Projectile projectile = new Projectile(t, (float) t.getX(), (float) t.getY(), t.getAngle());
+        Projectile projectile = new Projectile(t, (int) t.getX(), (int) t.getY(), (float) t.getAngle());
 
         if (projectiles.isEmpty()){
             this.projectiles.add(projectile);
@@ -120,18 +214,58 @@ public class Tank{
         }
     }
 
+    /**
+     * Get the projectile
+     * @return ArrayList<Projectile>
+     */
     public ArrayList<Projectile> getProjectiles(){
         return this.projectiles;
     }
-    
-    public Turret getTurret(){
-        if (this.turret != null){
-            return this.turret;
+
+    /**
+     * Set power of the tank. This will affect projectiles
+     * @param power
+     */
+    public void setPower(float power){
+        int maxPower = this.getHealth();
+        float newPower = this.getPower() + power;
+        
+        if (newPower <= 0) {
+            this.power = 0;
+        } else if (newPower > maxPower) {
+            this.power = maxPower;
+        } else {
+            this.power = newPower;
         }
-        return null;
+        //System.out.println("The tank now has " + this.getPower() + " power");
     }
 
-    public void rotateTurret(double angle) {
+    /**
+     * Move the tank's position
+     * @param app
+     * @param newTankPosition
+     */
+    public void move(App app, int newTankPosition) {
+        if (newTankPosition > 864) newTankPosition = 864;
+        if (newTankPosition < 0) newTankPosition = 0;
+        int newRow = (int) (app.HEIGHT - app.movingAvgWithCELLSIZE[newTankPosition]);
+        setPosition(newRow, newTankPosition);
+    }
+
+    /**
+     * Move the tank's turret's posiion
+     * @param newTurretPosition
+     */
+    public void moveTurret(float newTurretPosition){
+        this.turret.setAngle(newTurretPosition);
+        this.rotateTurret(newTurretPosition);
+    }
+
+    /**
+     * Rotates the turret by calculating the new position accounting for the angle and the setting the position
+     * @param angle
+     */
+    public void rotateTurret(float angle) {
         if (angle < -90){
             angle = -90;
         }
@@ -142,70 +276,39 @@ public class Tank{
 
         double xOffset = Math.cos(radians) * (TOP_TANK_WIDTH / 2);
         double yOffset = Math.sin(radians) * (TOP_TANK_WIDTH / 2);
-        double newTurretX = topRectX + xOffset;
-        double newTurretY = topRectY - yOffset;
+        int newTurretX = (int) (topRectX + xOffset);
+        int newTurretY = (int) (topRectY - yOffset);
     
         // Update the turret position
         this.turret.setPosition(newTurretX, newTurretY);
     }    
 
 
-    public void setPower(float power){
-        int maxPower = this.getHealth();
-        float newPower = this.getPower() + power;
+    /**
+     * Tank explosion graphic
+     * @param app
+     */
+    public void explode(App app){
+        int[] colors = {app.color(this.getColours()[0],this.getColours()[1], this.getColours()[2]) , app.color(255, 165, 0), app.color(255, 255, 0)};
+        float[] radii = {5, 5,5 }; 
         
-        // Bound Checking
-        if (newPower <= 0) {
-            this.power = 0;
-        } else if (newPower > maxPower) {
-            this.power = maxPower;
-        } else {
-            this.power = newPower;
-        }
-    
-        //System.out.println("The tank now has " + this.getPower() + " power");
-    }
-
-    public void move(App app, int dx) {
-
-        if (app.left) { 
-            double newCol = column - dx; // Move left
-
-            if ((newCol > 864)||(newCol < 0)) newCol = App.WIDTH;
-            double newRow = app.HEIGHT - (double) app.movingAvgWithCELLSIZE[(int) newCol];
-            setPosition(newRow, newCol);
-        }
-        if (app.right) {
-            double newCol = column + dx;
-            if ((newCol > 864)||(newCol < 0)) newCol = 0;
-            double newRow = app.HEIGHT - (double) app.movingAvgWithCELLSIZE[(int) newCol];
-            setPosition(newRow, newCol);
+        for (int i = 0; i < colors.length; i++) {
+            app.fill(colors[i]);
+            
+            float maxRadius = radii[i];
+            
+            for (long j = 0; j < 200; j += 1) {
+                float progress = (float)(j) / 200;
+                float currentRadius = progress * maxRadius;
+                app.ellipse((float)this.getColumn(), (float)this.getRow(), currentRadius * 2, currentRadius * 2);
+            }
         }
     }
 
-    public void moveTurret(App app, int dx){
-        if (app.up) {
-            // Rotate turret left
-            int newAngle = this.turret.getAngle() - dx;
-            this.turret.setAngle(newAngle);
-            rotateTurret(newAngle);
-        }
-        if (app.down) {
-            // Rotate turret right
-            int newAngle = this.turret.getAngle() + dx;
-            this.turret.setAngle(newAngle);
-            rotateTurret(newAngle);
-        }
-    }
-
-    public void changePower(App app, int dx){
-        if (app.w) {
-            this.setPower(((float) 36/60) * dx); 
-        }
-        if (app.s) {
-            this.setPower(((float) -36/60) * dx); 
-        }
-    }
+    /**
+     * Tank move graphic
+     * @param app
+     */
     
     public void display(App app) {
 
@@ -230,15 +333,17 @@ public class Tank{
         app.fill(0);
         app.rect(-t.TURRET_WIDTH / 2, -t.TURRET_HEIGHT, t.TURRET_WIDTH, t.TURRET_HEIGHT); 
 
-        float x = app.screenX(-t.TURRET_WIDTH / 2, -t.TURRET_HEIGHT);
-        float y = app.screenY(-t.TURRET_WIDTH / 2, -t.TURRET_HEIGHT);
+        int x = Math.round(app.screenX(-t.TURRET_WIDTH / 2, -t.TURRET_HEIGHT));
+        int y = Math.round(app.screenY(-t.TURRET_WIDTH / 2, -t.TURRET_HEIGHT));
 
         t.setPosition((x+(t.TURRET_WIDTH/2)), y);
-        //System.out.println("Turret's new X is " + x + " and the new Y is " + y);
         
         app.popMatrix();
     }
 
+    /**
+     * Generate a string of Tank for debugging purposes
+     */
     @Override
     public String toString() {
         return "Tank{" +

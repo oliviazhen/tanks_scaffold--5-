@@ -1,23 +1,27 @@
 package Tanks;
 
-
 import java.util.*;
 
 import processing.core.PImage;
 
-public class draw {
+public class DrawObject {
 
+    /**
+     * Displays all the trees that exist in app. Also randomises the positions
+     * @param app
+     * @param trees
+     */
     public static void trees(App app, Set<Tree> trees){
         for (Tree tree : trees) {
             tree.display(app);
         }
     }
-      /**
+
+    /**
      * Calculates the moving average
      * Need to update fill with the foreground colour
-     * @param movingAvg
-     * @return HashMap with the X and Y coordinates of the line
-     */
+     * @param movingAvgWithCELLSIZE
+    */
     public static void smoothLine(App app, int[] rgb, double[] movingAvgWithCELLSIZE) {
         app.stroke(rgb[0], rgb[1], rgb[2]);
 
@@ -45,7 +49,8 @@ public class draw {
      * The ending point of the line is defined by the coordinates (x, HEIGHT). 
      * The HEIGHT variable represents the height of the window.
      * @param rgb
-     * @param movingAverage
+     * @param movingAverageWithCELLSIZE
+     * @param app
      */
     public static void floor(App app, int[] rgb, double[] movingAvgWithCELLSIZE) {
         app.stroke(rgb[0], rgb[1], rgb[2]);
@@ -58,6 +63,11 @@ public class draw {
         }
     }
 
+    /**
+     * GUI: for current player's turn
+     * @param app
+     * @param currentPlayerKey
+     */
     public static void playerTurn(App app, Character currentPlayerKey){
         app.fill(0);
         app.textSize(15);
@@ -72,17 +82,28 @@ public class draw {
 
     }
 
+    /**
+     * GUI: Displays the arrow above the current player for 2 seconds
+     * @param app
+     * @param currentPlayer
+     */
     public static void arrow(App app, Tank currentPlayer){
+
         float x = (float) currentPlayer.getColumn() * App.CELLSIZE + 15;
         float y = (float) currentPlayer.getRow() * App.CELLSIZE - 60;
         
         app.fill(0);
         app.rect(x - 5, y - 100, 10, 100);
         app.triangle(x - 20, y - 30, x, y + 20, x + 20, y - 30);
+    
     }
 
+    /**
+     * GUI: Display's the player's fuel levels
+     * @param app
+     * @param tank
+     */
     public static void playerFuel(App app, Tank tank){
-
         PImage fuel = app.loadImage("src/main/resources/Tanks/fuel.png");
         fuel.resize(25, 25);
         app.image(fuel, 150, 10);
@@ -92,8 +113,12 @@ public class draw {
         app.text(tank.getFuelAmount(), 180, 30);
     }
 
+    /**
+     * GUI: Displays the number of parachutes remaining for the player
+     * @param app
+     * @param tank
+     */
     public static void playerParachute(App app, Tank tank){
-
         PImage parachute = app.loadImage("src/main/resources/Tanks/parachute.png"); 
         parachute.resize(25, 25);
         app.image(parachute, 150, 40);
@@ -101,16 +126,20 @@ public class draw {
         app.fill(0);
         app.textSize(15);
         app.text(tank.getParachutes(), 180, 60);
-        
     }
 
+
+    /**
+     * GUI: Health bar which updates based on the changes in health
+     * @param app
+     * @param t
+     */
     public static void healthBar(App app, Tank t){
         app.noStroke();
         int MAGNITUDE = 2;
 
         app.textSize(15);
 
-        //Out of 100
         float currentPower = Math.round(t.getPower());
 
         //Create the rectangle
@@ -130,6 +159,11 @@ public class draw {
 
     }
 
+    /**
+     * GUI: Scoreboard updates the current scores of all players
+     * @param app
+     * @param players
+     */
     public static void scoreboard(App app, HashMap<Character, Tank> players) {
 
         int numberOfPlayers = players.size();
@@ -169,10 +203,21 @@ public class draw {
         app.line(720, 70 + numberOfPlayers * 20,850, 70 + numberOfPlayers * 20);
     }
 
+    /**
+     * Displays the background, I placed this in a function to allow me to smoothly control where the background is patched.
+     * This is important to move my player
+     * @param app
+     * @param background
+     */
     public static void background(App app, PImage background){
         app.image(background, 0, 0);
     }
 
+    /**
+     * Display the wind as a wind object
+     * @param app
+     * @param wind
+     */
     public static void wind(App app, Wind wind){
 
         if (wind.getWindForce() < 0){
@@ -192,11 +237,10 @@ public class draw {
 
     }
 
-    public static void changeWind(App app){
-
-    }
-
-    
+    /**
+     * Driver function of Draw class which will load everything
+     * @param app
+     */
     public static void level(App app){
 
         background(app, app.background);
@@ -205,10 +249,10 @@ public class draw {
         trees(app, app.trees);
 
         playerTurn(app, app.currentPlayerKey);
-        playerFuel(app, app.current_player);
-        playerParachute(app, app.current_player);
-        healthBar(app,app.current_player);
-        //arrow(app, app.current_player);
+        playerFuel(app, app.currentPlayer);
+        playerParachute(app, app.currentPlayer);
+        healthBar(app,app.currentPlayer);
+        arrow(app, app.currentPlayer);
     }
     
 

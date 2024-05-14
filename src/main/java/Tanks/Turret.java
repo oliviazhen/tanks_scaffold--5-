@@ -1,29 +1,40 @@
 package Tanks;
 
-import java.util.ArrayList;
-import java.util.List;
-
-public class Turret {
+public class Turret{
 
     final int TURRET_WIDTH = 8;
     final int TURRET_HEIGHT = 15;
-    public int angle;
-    private double x;
-    private double y;
-    private int power;
+    public float angle;
+    private int x;
+    private int y;
 
-    public Turret(double defaultX, double defaultY){
+    /**
+     * Constructor takes in the default X and Y inherited from the tank.
+     * Note that I used an is-a relationship here as a necessity to absorb the TOP_TANK_WIDTH/topRectX values.
+     * @param defaultX
+     * @param defaultY
+     */
+    public Turret(int defaultX, int defaultY){
         this.x = defaultX;
         this.y = defaultY;
         angle = 0;
     }
 
-    public void setPosition(double newX, double newY){
+    /**
+     * Set the X and Y
+     * @param newX
+     * @param newY
+     */
+    public void setPosition(int newX, int newY){
         this.x = newX;
         this.y = newY;
     }
 
-    public void setAngle(int newAngle){
+    /**
+     * Set the angle of the turret in degrees. Performs necessary checks
+     * @param newAngle as a float
+     */
+    public void setAngle(float newAngle){
         if (newAngle < -90){
             this.angle = -90;
         }
@@ -35,32 +46,28 @@ public class Turret {
         }
     }
 
-    public double getX(){
+    /**
+     * Getter for the X
+     * @return int
+     */
+    public int getX(){
         return this.x;
     }
 
-    public double getY(){
+    /**
+     * Getter for the Y
+     * @return int
+     */
+    public int getY(){
         return this.y;
     }
 
-    public int getAngle(){
+    /**
+     * Getter for the angle.
+     * @return float
+     */
+    public float getAngle(){
         return this.angle;
-    }
-
-    public void changePower(int addOrSubtract){
-        int AMOUNT = 36;
-        if (addOrSubtract > 0){
-            if (this.power + AMOUNT > 100){
-                this.power = 100;
-            }
-            else this.power += AMOUNT;
-        }
-        else{
-            if (this.power - AMOUNT < 0){
-                this.power = 0;
-            }
-            else this.power -= AMOUNT;
-        }
     }
 
 }

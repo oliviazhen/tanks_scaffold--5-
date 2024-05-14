@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="Tanks.tankTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2024-05-13T10:25:01" hostname="192-168-1-13.tpgi.com.au" time="0.061">
+  <properties/>
+  <testcase name="testTankConstructor()" classname="Tanks.tankTest" time="0.061"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -5,14 +5,10 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import processing.core.PImage;
 import processing.data.JSONArray;
 import processing.data.JSONObject;
-import processing.core.PApplet;
 
 public class ReadJSON {
-
-    // I want this ReadJSON to initialise all of the JSON variables that are declared in my App.java
 
     /**
      * Updates:
@@ -34,26 +30,26 @@ public class ReadJSON {
 
         JSONObject level = levels.getJSONObject(levelIndex);
 
-        //load the background
+        // Load the background
         String backgroundName = level.getString("background");
         String backgroundPath = "src/main/resources/Tanks/" + backgroundName;
         app.background = app.loadImage(backgroundPath);
 
-        //load the tile map
+        // Load the tile map
         String tileType = level.getString("layout");
         char[][] charTiles = ReadFile.loadArray(tileType);
         
-        //load the foreground colour
+        // Load the foreground colour
         String foregroundColour = level.getString("foreground-colour");
         app.foregroundColourRBG = UsefulFunctions.RBGToArray(foregroundColour);
 
-        app.tiles = ReadFile.arrayToTiles(charTiles, app.foregroundColourRBG, null);
+        app.tiles = ReadFile.arrayToTiles(charTiles, app.foregroundColourRBG);
 
         app.movingAvg = smoothedTerrainLine(app, app.foregroundColourRBG, charTiles);
         double[] centerValues = getCenterValues(app.movingAvg);
         app.movingAvgWithCELLSIZE = getMovingAverage(app.movingAvg);
 
-        //Set the trees if the txt file has 'em
+        // Load the trees
         if (level.getString("trees") != null) setTrees(app, level, centerValues);
 
         initializePlayers(app, charTiles);
@@ -64,6 +60,13 @@ public class ReadJSON {
 
     }
 
+    /**
+     * Provides an array of the values generated after the second round of smoothing.
+     * @param app
+     * @param foregroundColourRBG
+     * @param charTiles
+     * @return
+     */
     public static double[] smoothedTerrainLine(App app, int[] foregroundColourRBG, char[][] charTiles) {
 
         int[] heights = Terrain.heightTerrainElement(app.tiles);
@@ -74,8 +77,12 @@ public class ReadJSON {
         return secondMovingAvg;
     }
 
+    /**
+     * Provides the Y value for each X at the middle of each column.
+     * @param movingAverage
+     * @return array of the center values
+     */
     public static double[] getCenterValues(double[] movingAverage){
-
 
         double[] centerValues = new double[App.BOARD_WIDTH];
         int centerValueindex = 0;
@@ -86,11 +93,14 @@ public class ReadJSON {
                 centerValueindex ++;
             }
         }
-
         return centerValues;
-
     }
 
+    /**
+     * Getter for the moving average. Used for debugging purposes to ensure that I am working with an 864 with each value multiplied by app.CELLSIZE
+     * @param movingAvg
+     * @return
+     */
     public static double[] getMovingAverage(double[] movingAvg){
 
         double[] movingAvgWithCELLSIZE = new double[movingAvg.length];
@@ -99,12 +109,18 @@ public class ReadJSON {
         }
 
         return movingAvgWithCELLSIZE;
-    }
+    }  
     
+    /**
+     * Setter for the trees, useful for setting positions after smoothing
+     * @param app
+     * @param level
+     * @param centerValues
+     */
     public static void setTrees(App app, JSONObject level, double[] centerValues) {     
             String path = "src/main/resources/Tanks/" + level.getString("trees");
 
-            //HashMap sorted by Vertical (column FIXED), Horizontal
+            // Find the X positions of the trees based on the Tile[][] array
             HashMap<Integer, Float> treeCoordinates = new HashMap<Integer, Float>();
             Set<Integer> treeVertical = new HashSet<>();
 
@@ -117,6 +133,7 @@ public class ReadJSON {
                 }
             }
 
+            // Find the Y positions by only accounting for X's that are included
             for (int i = 0; i < centerValues.length; i ++ ){
                 if (treeVertical.contains(i)){
                     float yPositon = (float) (App.BOARD_HEIGHT - (centerValues[i] + 1));
@@ -125,6 +142,12 @@ public class ReadJSON {
                 }
             }
 
+            /**
+             * For each coordinate:
+             * 1. Create the tree object that should be attached
+             * 2. Set the appropriate image
+             * 3. Add the trees in a collection for tracking
+             */
             for (Map.Entry<Integer, Float> entry : treeCoordinates.entrySet()) {
                 Integer column = entry.getKey();
                 Float row = entry.getValue();
@@ -135,7 +158,11 @@ public class ReadJSON {
             }
     }
 
-
+    /**
+     * Initialise players and set them into a HashMap of <Character, Tank> entries.
+     * @param app
+     * @param charTiles
+     */
     public static void initializePlayers(App app, char[][] charTiles) {
 
         //Set Characters
@@ -169,22 +196,21 @@ public class ReadJSON {
     public static void updateTankPositionsAfterSmoothing(App app, double[] centerValues){
         
            // Get the updated positions
-            HashMap<Double, Double> tankCoordinates = new HashMap<Double, Double>();
-            Set<Double> tankVertical = new HashSet<>();
+            HashMap<Integer, Integer> tankCoordinates = new HashMap<Integer, Integer>();
+            Set<Integer> tankVertical = new HashSet<>();
 
             for (int i = 0; i < app.tiles.length; i ++){
                 for (int j = 0; j < app.tiles[i].length; j ++){
                     if (app.tiles[i][j].getType() == "player"){
-                        tankVertical.add((double) j);
+                        tankVertical.add(j);
                     }
                 }
             }
 
-
             for (int i = 0; i < centerValues.length; i ++ ){
-                if (tankVertical.contains((double) i)){
-                    double yPositon = (double) (App.HEIGHT - (centerValues[i] * App.CELLSIZE));
-                    double xPosition = (double) i * App.CELLSIZE;
+                if (tankVertical.contains(i)){
+                    int yPositon = (int) (App.HEIGHT - (centerValues[i] * App.CELLSIZE));
+                    int xPosition = i * App.CELLSIZE;
                     tankCoordinates.put(xPosition, yPositon);
                 }
             }
@@ -195,11 +221,11 @@ public class ReadJSON {
                Tank current_tank = entry.getValue(); 
                
 
-               Double before_x = current_tank.getRow();
-               Double before_y = current_tank.getColumn();
+               int before_x = current_tank.getRow();
+               int before_y = current_tank.getColumn();
                
    
-               Double new_y = 0.0;
+               int new_y = 0;
                if (tankCoordinates.containsKey(before_x)){
                    new_y = tankCoordinates.get(before_x);
                    current_tank.setPosition(new_y, before_x); // Update player's position

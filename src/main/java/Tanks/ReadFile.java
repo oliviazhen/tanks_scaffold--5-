@@ -1,13 +1,17 @@
 package Tanks;
 
 import java.util.Arrays;
-import java.util.ArrayList;
 import java.util.Scanner;
 import java.io.File;
 import java.io.FileNotFoundException;
 
 public class ReadFile{
 
+    /**
+     * Loads a character array by parsing the txt file and then reading every value by line.
+     * @param filename
+     * @return char[][]
+     */
     public static char[][] loadArray(String filename) {
 
         // Hard coded to allow for extra tile at the last position WOMP :(
@@ -56,10 +60,14 @@ public class ReadFile{
             System.out.println("File Not Found");
             e.printStackTrace();
         }
-        System.out.println("There is something wrong with your loading array");
         return null;
     }
 
+    /**
+     * Fills the bottom of the terrain where there are non-empty columns with X's to be parsed as valid terrain.
+     * @param terrain
+     * @return
+     */
     public static char[][] fillBottomX(char[][] terrain) {
 
         for (int row = 0; row < terrain.length; row++) {
@@ -71,23 +79,32 @@ public class ReadFile{
                         terrain[curr_row][col] = 'X';
                     }
                 }
-
             }
         }
 
         return terrain;
     }
     
+    /**
+     * Print function for debugging purposes
+     * @param terrain
+     */
     public static void printTerrain(char[][] terrain) {
         for (int i = 0; i < terrain.length; i++) {
             System.out.println(terrain[i]);
         }
     }
 
-    public static Tile[][] arrayToTiles(char[][] array, int[] colours, String treePath){
+    /**
+     * Converts my character array into a collection of tile objects.
+     * Each tile has a colour and is separated by strings of "floor", "tree", "space", and "player"
+     * @param array
+     * @param colours
+     * @return Tile[][]
+     */
+    public static Tile[][] arrayToTiles(char[][] array, int[] colours){
 
         Tile[][] tiles = new Tile[array.length][array[0].length];
-        //learn to traverse the char array
         int count = 0;
 
         for (int row = 0; row < array.length; row ++){
@@ -95,15 +112,14 @@ public class ReadFile{
             // Make empty lines into an empty character array
             String arrayString = new String(array[row]);
             if (arrayString.trim().isEmpty()){
-                //System.out.println(arrayString + " is empty");
                 char[] emptyArray = new char[array[row].length]; 
                 Arrays.fill(emptyArray, ' '); 
                 array[row] = emptyArray;
             }
 
+            // Designate each element in char[][] to a tile
             for (int col = 0; col < array[row].length; col ++){
                 String type;
-                //designate each element in char[][] to a tile
                 if (array[row][col] == 'X') {
                     type = "floor";
                 } else if (array[row][col] == 'T') {
@@ -114,7 +130,7 @@ public class ReadFile{
                     type = "player";
                 }
     
-                //create the tile
+                // Create the tile
                 tiles[row][col] = new Tile(type, row, col);
                 if (tiles[row][col].getType() == "floor") tiles[row][col].setColour(colours);
             }
