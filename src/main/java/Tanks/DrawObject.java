@@ -89,8 +89,8 @@ public class DrawObject {
      */
     public static void arrow(App app, Tank currentPlayer){
 
-        float x = (float) currentPlayer.getColumn() * App.CELLSIZE + 15;
-        float y = (float) currentPlayer.getRow() * App.CELLSIZE - 60;
+        float x = (float) currentPlayer.getY() * App.CELLSIZE + 15;
+        float y = (float) currentPlayer.getX() * App.CELLSIZE - 60;
         
         app.fill(0);
         app.rect(x - 5, y - 100, 10, 100);

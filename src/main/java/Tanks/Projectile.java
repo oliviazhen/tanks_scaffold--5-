@@ -2,13 +2,13 @@ package Tanks;
 
 import java.util.Map;
 
-public class Projectile{
+public class Projectile implements Location{
     int radius = 30;
     int speed = 60; 
 
     private Turret fromT;
-    private int x;
-    private int y;
+    private int X;
+    private int Y;
     private float angle;
     private Wind wind;
 
@@ -19,48 +19,48 @@ public class Projectile{
      * Constructor takes in a starting turret object in which it belonged to
      * It also considers a position and an angle in which it is shooting at.
      * @param fromT
-     * @param x
-     * @param y
+     * @param X
+     * @param Y
      * @param angle
      */
-    public Projectile(Turret fromT, int x, int y, float angle){
+    public Projectile(Turret fromT, int X, int Y, float angle){
         this.angle = angle;
-        this.x = x;
-        this.y = y;
+        this.X = X;
+        this.Y = Y;
         this.fromT = fromT;
 
     }
 
     /**
-     * Getter for the x (column)
+     * Getter for the X (column)
      * @return int
      */
     public int getX(){
-        return this.x;
+        return this.X;
     }
 
     /**
-     * Getter for the y (row)
+     * Getter for the Y (row)
      * @return 
      */
     public int getY(){
-        return this.y;
+        return this.Y;
     }
 
     /**
-     * Setter for x (row)
-     * @param x as an int
+     * Setter for X (row)
+     * @param X as an int
      */
-    public void setX(int x){
-        this.x = x;
+    public void setX(int X){
+        this.X = X;
     }
 
     /**
-     * Setter for y (column)
-     * @param x as an int
+     * Setter for Y (column)
+     * @param X as an int
      */
-    public void setY(int y){
-        this.y = y;
+    public void setY(int Y){
+        this.Y = Y;
     }
 
     /**
@@ -71,7 +71,7 @@ public class Projectile{
         this.wind = wind;
     }
     /**
-     * Graphical display separated into explosion and non-explosion picture
+     * Graphical displaY separated into eXplosion and non-eXplosion picture
      * @param app
      */
     public void display(App app) {
@@ -82,23 +82,23 @@ public class Projectile{
             for (int i = 0; i < colors.length; i++) {
                 app.fill(colors[i]);
                 
-                float maxRadius = radii[i];
+                float maXRadius = radii[i];
                 
                 for (long j = 0; j < 200; j += 1) {
                     float progress = (float)(j) / 200;
-                    float currentRadius = progress * maxRadius;
+                    float currentRadius = progress * maXRadius;
                     app.ellipse(explodeCoordinate[0], explodeCoordinate[1], currentRadius * 2, currentRadius * 2);
                 }
             }
 
         } else {
             app.fill(204, 102, 0);
-            app.ellipse((float)x, (float)y, 5, 5);
+            app.ellipse((float)X, (float)Y, 5, 5);
         }
     }
 
     /**
-     * Move the projectile by shifting X and Y
+     * Move the projectile bY shifting X and Y
      */
     public void move(){
 
@@ -112,21 +112,21 @@ public class Projectile{
 
         //Since the program reads the angle as 0 we have to subtract 90;
         if (angle == 0){
-            this.y -= speed;
+            this.Y -= speed;
         }
         else if (angle < 0){
             double radians = Math.toRadians(angle + 90);
             double deltaX = Math.cos(radians) * speed;
             double deltaY = Math.sin(radians) * speed;
-            this.x -= deltaX;
-            this.y -= deltaY;
+            this.X -= deltaX;
+            this.Y -= deltaY;
         }
         else{
             double radians = Math.toRadians(angle - 90);
             double deltaX = Math.cos(radians) * speed;
             double deltaY = Math.sin(radians) * speed;
-            this.x += deltaX;
-            this.y += deltaY;
+            this.X += deltaX;
+            this.Y += deltaY;
         }
     }
 
@@ -136,8 +136,8 @@ public class Projectile{
      * @return
      */
     public boolean checkRemove(App app) {
-       // System.out.println("The projectile path at X: " + this.x + " and Y: " + this.y);
-        if (this.x < 0 || this.y < 0 || this.x > 864 || this.y > 640) {
+       // SYstem.out.println("The projectile path at X: " + this.X + " and Y: " + this.Y);
+        if (this.X < 0 || this.Y < 0 || this.X > 864 || this.Y > 640) {
             return true;
         }
 
@@ -145,10 +145,10 @@ public class Projectile{
             float lineX = lineCoord.getKey();
             float lineY = lineCoord.getValue();
 
-            if ((double)Math.floor(this.x) == (double)Math.floor(lineX)){
-                if ((double) this.y >= (double) lineY){
+            if ((double)Math.floor(this.X) == (double)Math.floor(lineX)){
+                if ((double) this.Y >= (double) lineY){
                     willExplode = true;
-                    this.explodeCoordinate = new int[]{(int)this.x, (int)this.y};
+                    this.explodeCoordinate = new int[]{(int)this.X, (int)this.Y};
                     return true;
                 }
             }

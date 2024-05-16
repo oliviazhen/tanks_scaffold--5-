@@ -2,9 +2,11 @@ package Tanks;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import jogamp.opengl.x11.glx.X11GLXContext;
+import jogamp.opengl.x11.glx.X11GLXDynamicLibraryBundleInfo;
 import processing.core.PApplet;
 
-public class Tank{
+public class Tank implements Location{
 
     private int[] colours = new int[3];
 
@@ -13,8 +15,8 @@ public class Tank{
     protected int TOP_TANK_WIDTH = 20;
     protected int TOP_TANK_HEIGHT = 8;
 
-    protected int row; // Y coordinate 
-    protected int column; // X coordinate 
+    protected int Y; // Row coordinate 
+    protected int X; // Column coordinate 
     protected int topRectX;
     protected int topRectY;
 
@@ -33,9 +35,9 @@ public class Tank{
      * @param row
      * @param column
      */
-    public Tank(int row, int column) {
-        this.row = row;
-        this.column = column;
+    public Tank(int X, int Y) {
+        this.Y = Y; //Note that the X and Y are switched around since my logic follows the Row, Column logic.
+        this.X = X;
     }
 
     /**
@@ -50,16 +52,16 @@ public class Tank{
      * Getter for Row
      * @return int 
      */
-    public int getRow() {
-        return row;
+    public int getY() {
+        return Y;
     }
 
     /**
      * Getter for Column
      * @return int 
      */
-    public int getColumn() {
-        return column;
+    public int getX() {
+        return X;
     }
 
     /**
@@ -117,8 +119,21 @@ public class Tank{
      * @param newCol
      */
     public void setPosition(int newRow, int newCol){
-        this.row = newRow;
-        this.column = newCol;   
+        this.Y = newRow;
+        this.X = newCol;   
+    }
+
+    /**
+     * Individual setter for X
+     */
+    public void setX(int X){
+        this.X = X;
+    }
+    /**
+     * Individual setter for Y
+     */
+    public void setY(int Y){
+        this.Y = Y;
     }
 
      /**
@@ -228,14 +243,13 @@ public class Tank{
      */
     public void setPower(float power){
         int maxPower = this.getHealth();
-        float newPower = this.getPower() + power;
         
-        if (newPower <= 0) {
+        if (power <= 0) {
             this.power = 0;
-        } else if (newPower > maxPower) {
+        } else if (power > maxPower) {
             this.power = maxPower;
         } else {
-            this.power = newPower;
+            this.power = power;
         }
         //System.out.println("The tank now has " + this.getPower() + " power");
     }
@@ -300,7 +314,7 @@ public class Tank{
             for (long j = 0; j < 200; j += 1) {
                 float progress = (float)(j) / 200;
                 float currentRadius = progress * maxRadius;
-                app.ellipse((float)this.getColumn(), (float)this.getRow(), currentRadius * 2, currentRadius * 2);
+                app.ellipse((float)this.getX(), (float)this.getY(), currentRadius * 2, currentRadius * 2);
             }
         }
     }
@@ -309,15 +323,14 @@ public class Tank{
      * Tank move graphic
      * @param app
      */
-    
     public void display(App app) {
 
         app.fill(colours[0], colours[1], colours[2]);
         app.noStroke(); 
-        app.rect((float)column, (float)row, TANK_WIDTH, TANK_HEIGHT);
+        app.rect((float)X, (float)Y, TANK_WIDTH, TANK_HEIGHT);
         
         // Second rectangle has to be placed on top of the first rectangle.
-        setSecondRectangle(row, column);
+        setSecondRectangle(Y, X);
         app.rect((float)topRectX , (float)topRectY , TOP_TANK_WIDTH, TOP_TANK_HEIGHT);
     
         // Draw the turret
@@ -347,8 +360,8 @@ public class Tank{
     @Override
     public String toString() {
         return "Tank{" +
-                "row=" + row +
-                ", column=" + column +
+                "row=" + Y +
+                ", column=" + X +
                 ", fuel=" + fuel +
                 ", health=" + health +
                 ", power=" + power +

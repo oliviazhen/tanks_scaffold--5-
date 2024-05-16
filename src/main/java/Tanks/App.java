@@ -93,7 +93,7 @@ public class App extends PApplet{
 
         currentPlayerKey = players.keySet().iterator().next();
         currentPlayer = players.get(currentPlayerKey);
-        newTankPosition = currentPlayer.getColumn();
+        newTankPosition = currentPlayer.getX();
         newTurretPosition = currentPlayer.getTurret().getAngle();
 
         DrawObject.level(this);
@@ -128,14 +128,14 @@ public class App extends PApplet{
         // Update the current player to the next player
         currentPlayerKey = (char) keys[nextIndex];
         currentPlayer = players.get(currentPlayerKey);
-        newTankPosition = currentPlayer.getColumn();
+        newTankPosition = currentPlayer.getX();
         newTurretPosition = currentPlayer.getTurret().getAngle();
     }    
 
     /**
      * Receive key pressed signal from the keyboard.
      */
-
+    boolean teleport;
 	@Override
     public void keyPressed(KeyEvent event){
 
@@ -185,13 +185,15 @@ public class App extends PApplet{
         
 
         //Turret Power
-        if (keyCode == 'W'){
+        if (keyCode == 87){
             w = true;
-            move += 1;
+            s = false;
+            currentPlayer.setPower(currentPlayer.getPower() + 36);
         }
-        if (keyCode == 'S'){
+        if (keyCode == 83){
             s = true;
-            move += 1;
+            w = false;
+            currentPlayer.setPower(currentPlayer.getPower() - 36);
         }
 
         //Projectile
@@ -216,6 +218,13 @@ public class App extends PApplet{
             w = false;
             s = false;
         }
+
+        // Extension, Teleport
+        if (key == 84){
+            teleport = true;
+        }
+
+
         
     }
 
@@ -248,20 +257,25 @@ public class App extends PApplet{
         }
 
         //Turret Power
-        if (keyCode == 'W'){
+        if (keyCode == 87){
             w = false;
-            move = 0;
         }
-        if (keyCode == 'S'){
+        if (keyCode == 83){
             s = false;
-            move = 0;
+        }
+        if (key == 84){
+            teleport = false;
         }
 
     }
 
     @Override
     public void mousePressed(MouseEvent e) {
-        //TODO - powerups, like repair and extra fuel and teleport
+        //Find the x of the mouse 
+        int x = e.getX();
+        if (movingAvgWithCELLSIZE[x] > 0 && movingAvgWithCELLSIZE[x] < 640){
+            if (teleport) {currentPlayer.setPosition((int)(HEIGHT - movingAvgWithCELLSIZE[x]), x);}
+        }
     }
 
     @Override
@@ -282,7 +296,7 @@ public class App extends PApplet{
             Character tankIdentifier = entry.getKey();
             Tank tank = entry.getValue();
             
-            double distance = Math.sqrt(Math.pow(tank.getColumn() - bullet.getX(), 2) + Math.pow(tank.getRow() - bullet.getY(), 2));
+            double distance = Math.sqrt(Math.pow(tank.getX() - bullet.getX(), 2) + Math.pow(tank.getY() - bullet.getY(), 2));
             
             if (distance <= bullet.radius) {
                 float damagePercentage = (float) (bullet.radius - distance) / bullet.radius;
@@ -325,6 +339,7 @@ public class App extends PApplet{
         for (Map.Entry<Character, Tank> player : players.entrySet()) {
             player.getValue().display(this);
         }
+
 
         // Move is triggered
         if (move > 0) {

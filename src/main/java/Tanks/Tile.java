@@ -1,8 +1,8 @@
 package Tanks;
 
-public class Tile{
+public class Tile implements Location{
     private String type; // Is the tile a tree or a hill etc?
-    private int x, y; //Column and Row respectively
+    private int X, Y; //Column and Row respectively
     private int[] rgb;
     private String treePath;
     
@@ -12,8 +12,8 @@ public class Tile{
      */
     public Tile(String type, int x, int y){
         this.type = type;
-        this.x = x;
-        this.y = y;
+        this.X = x;
+        this.Y = y;
     }
 
     /**
@@ -21,7 +21,7 @@ public class Tile{
      * @return int
      */
     public int getX(){
-        return this.x;
+        return this.X;
     }
 
     /**
@@ -29,9 +29,22 @@ public class Tile{
      * @return int
      */
     public int getY(){
-        return this.y;
+        return this.Y;
+    }
+    
+    /**
+     * Individual setter for X
+     */
+    public void setX(int X){
+        this.X = X;
     }
 
+    /**
+     * Individual setter for Y
+     */
+    public void setY(int Y){
+        this.Y = Y;
+    }
     /**
      * Getter for the type
      * @return string

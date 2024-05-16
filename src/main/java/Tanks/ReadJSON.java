@@ -221,8 +221,8 @@ public class ReadJSON {
                Tank current_tank = entry.getValue(); 
                
 
-               int before_x = current_tank.getRow();
-               int before_y = current_tank.getColumn();
+               int before_x = current_tank.getX();
+               int before_y = current_tank.getY();
                
    
                int new_y = 0;

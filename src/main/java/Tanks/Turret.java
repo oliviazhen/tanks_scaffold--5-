@@ -1,22 +1,22 @@
 package Tanks;
 
-public class Turret{
+public class Turret implements Location{
 
     final int TURRET_WIDTH = 8;
     final int TURRET_HEIGHT = 15;
     public float angle;
-    private int x;
-    private int y;
+    private int X;
+    private int Y;
 
     /**
      * Constructor takes in the default X and Y inherited from the tank.
-     * Note that I used an is-a relationship here as a necessity to absorb the TOP_TANK_WIDTH/topRectX values.
+     * Note that I used an is-a relationship here as a necessitY to absorb the TOP_TANK_WIDTH/topRectX values.
      * @param defaultX
      * @param defaultY
      */
     public Turret(int defaultX, int defaultY){
-        this.x = defaultX;
-        this.y = defaultY;
+        this.X = defaultX;
+        this.Y = defaultY;
         angle = 0;
     }
 
@@ -26,12 +26,12 @@ public class Turret{
      * @param newY
      */
     public void setPosition(int newX, int newY){
-        this.x = newX;
-        this.y = newY;
+        this.X = newX;
+        this.Y = newY;
     }
 
     /**
-     * Set the angle of the turret in degrees. Performs necessary checks
+     * Set the angle of the turret in degrees. Performs necessarY checks
      * @param newAngle as a float
      */
     public void setAngle(float newAngle){
@@ -45,13 +45,25 @@ public class Turret{
             this.angle = newAngle;
         }
     }
+     /**
+     * Individual setter for X
+     */
+    public void setX(int X){
+        this.X = X;
+    }
+    /**
+     * Individual setter for Y
+     */
+    public void setY(int Y){
+        this.Y = Y;
+    }
 
     /**
      * Getter for the X
      * @return int
      */
     public int getX(){
-        return this.x;
+        return this.X;
     }
 
     /**
@@ -59,7 +71,7 @@ public class Turret{
      * @return int
      */
     public int getY(){
-        return this.y;
+        return this.Y;
     }
 
     /**
