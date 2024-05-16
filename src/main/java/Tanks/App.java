@@ -221,11 +221,13 @@ public class App extends PApplet{
 
         // Extension, Teleport
         if (key == 84){
-            teleport = true;
+            if (currentPlayer.getFuelAmount() >= 15) {
+                teleport = true;
+            }
+            else{
+                teleport = false;
+            }
         }
-
-
-        
     }
 
     /**
@@ -263,7 +265,7 @@ public class App extends PApplet{
         if (keyCode == 83){
             s = false;
         }
-        if (key == 84){
+        if (keyCode == 84){
             teleport = false;
         }
 
@@ -273,8 +275,11 @@ public class App extends PApplet{
     public void mousePressed(MouseEvent e) {
         //Find the x of the mouse 
         int x = e.getX();
-        if (movingAvgWithCELLSIZE[x] > 0 && movingAvgWithCELLSIZE[x] < 640){
-            if (teleport) {currentPlayer.setPosition((int)(HEIGHT - movingAvgWithCELLSIZE[x]), x);}
+        if ((movingAvgWithCELLSIZE[x] > 0 && movingAvgWithCELLSIZE[x] < 640) && (teleport)){
+            if (teleport) {
+                currentPlayer.setPosition((int)(HEIGHT - movingAvgWithCELLSIZE[x]), x);
+                currentPlayer.setFuelAmount(currentPlayer.getFuelAmount() - 15);
+            }
         }
     }
 
@@ -357,7 +362,7 @@ public class App extends PApplet{
 
             move += 1;
 
-            if (move == 60) {
+            if (move == 61) {
                 move = 0;
                 left = false;
                 right = false;

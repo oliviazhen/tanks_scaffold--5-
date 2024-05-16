@@ -260,10 +260,15 @@ public class Tank implements Location{
      * @param newTankPosition
      */
     public void move(App app, int newTankPosition) {
-        if (newTankPosition > 864) newTankPosition = 864;
-        if (newTankPosition < 0) newTankPosition = 0;
-        int newRow = (int) (app.HEIGHT - app.movingAvgWithCELLSIZE[newTankPosition]);
-        setPosition(newRow, newTankPosition);
+
+        if (app.currentPlayer.getFuelAmount() > 0){
+            if (newTankPosition > 864) newTankPosition = 864;
+            if (newTankPosition < 0) newTankPosition = 0;
+            int newRow = (int) (app.HEIGHT - app.movingAvgWithCELLSIZE[newTankPosition]);
+            setPosition(newRow, newTankPosition);
+            app.currentPlayer.setFuelAmount(app.currentPlayer.getFuelAmount() - 1);
+        }
+
     }
 
     /**
