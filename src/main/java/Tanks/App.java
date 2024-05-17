@@ -91,6 +91,8 @@ public class App extends PApplet{
         jsonData = loadJSONObject(configPath);
         ReadJSON.loadLevel(this, 2);
 
+    
+
         currentPlayerKey = players.keySet().iterator().next();
         currentPlayer = players.get(currentPlayerKey);
         newTankPosition = currentPlayer.getX();
@@ -98,13 +100,24 @@ public class App extends PApplet{
 
         DrawObject.level(this);
 
+        startTime = 0;
+        while (millis() - 0 < 2000) DrawObject.arrow(this, currentPlayer);
+        if (millis() - 0 > 2000) {
+            showArrow = false;
+        }
+
         //Create a wind object
         this.windObj = new Wind();
         DrawObject.wind(this, windObj);
+
+        //Show arrow for first player
         
     }
 
     public void moveToNextPlayer() {
+
+        startTime = millis();
+        showArrow = true;
   
         Object[] keys = players.keySet().toArray();
     
@@ -210,6 +223,7 @@ public class App extends PApplet{
 
         // Stop all movement
         if (key == 65){
+            move = 0;
             space = false;
             left = false;
             right = false;
@@ -332,6 +346,9 @@ public class App extends PApplet{
      */
     public int newTankPosition;
     public float newTurretPosition;
+    boolean showArrow;
+    int startTime;
+
 
     @Override
     public void draw() {
@@ -355,10 +372,14 @@ public class App extends PApplet{
             else if (up) newTurretPosition -= 5.72;
             else if (down) newTurretPosition += 5.72;
 
-            currentPlayer.display(this);
-            currentPlayer.move(this, newTankPosition);
-
-            currentPlayer.moveTurret(newTurretPosition);
+            
+            if (up || down){
+                currentPlayer.moveTurret(newTurretPosition);
+            }
+            else{
+                currentPlayer.display(this);
+                currentPlayer.move(this, newTankPosition);
+            }           
 
             move += 1;
 
@@ -383,7 +404,7 @@ public class App extends PApplet{
                 if (bullet.willExplode){
                     //This controls the player switch for an explosion 
                     checkDamage(bullet);
-                    moveToNextPlayer();
+                    
                 }
 
                 projectileList.clear();
@@ -399,6 +420,15 @@ public class App extends PApplet{
             bullet.display(this);
             bullet.move();
         }
+
+        //Show arrow
+        if (showArrow) {
+            DrawObject.arrow(this, currentPlayer);
+            if (millis() - startTime > 2000) {
+              showArrow = false;
+            }
+        }
+
         DrawObject.scoreboard(this, players);
          
     }

@@ -89,13 +89,13 @@ public class DrawObject {
      */
     public static void arrow(App app, Tank currentPlayer){
 
-        float x = (float) currentPlayer.getY() * App.CELLSIZE + 15;
-        float y = (float) currentPlayer.getX() * App.CELLSIZE - 60;
+            float x = (float) currentPlayer.getX() + 15;
+            float y = (float) currentPlayer.getY() - 60;
+            
+            app.fill(0);
+            app.rect(x - 5, y - 100, 10, 100);
+            app.triangle(x - 20, y - 30, x, y + 20, x + 20, y - 30);
         
-        app.fill(0);
-        app.rect(x - 5, y - 100, 10, 100);
-        app.triangle(x - 20, y - 30, x, y + 20, x + 20, y - 30);
-    
     }
 
     /**
@@ -252,7 +252,7 @@ public class DrawObject {
         playerFuel(app, app.currentPlayer);
         playerParachute(app, app.currentPlayer);
         healthBar(app,app.currentPlayer);
-        arrow(app, app.currentPlayer);
+
     }
     
 

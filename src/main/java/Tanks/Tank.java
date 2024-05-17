@@ -267,7 +267,8 @@ public class Tank implements Location{
             int newRow = (int) (app.HEIGHT - app.movingAvgWithCELLSIZE[newTankPosition]);
             setPosition(newRow, newTankPosition);
             app.currentPlayer.setFuelAmount(app.currentPlayer.getFuelAmount() - 1);
-        }
+         }
+
 
     }
 
